@@ -44,14 +44,11 @@ img { max-width: 100%; display: block; }
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 100;
-  padding: 1rem 0;
-  transition: all 0.3s ease;
-}
-.navbar.scrolled {
+  padding: 0.5rem 0;
   background: #fff;
   border-bottom: 1px solid var(--kant);
-  padding: 0.5rem 0;
   box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+  transition: all 0.3s ease;
 }
 .navbar-inner {
   display: flex;
@@ -75,10 +72,9 @@ img { max-width: 100%; display: block; }
   font-family: 'Space Grotesk', sans-serif;
   font-weight: 700;
   font-size: 1.1rem;
-  color: #fff;
+  color: var(--grønn);
   transition: color 0.3s;
 }
-.navbar.scrolled .navbar-logo span { color: var(--grønn); }
 
 .nav-links {
   display: flex;
@@ -89,14 +85,11 @@ img { max-width: 100%; display: block; }
 .nav-links a {
   font-size: 0.9rem;
   font-weight: 500;
-  color: rgba(255,255,255,0.9);
+  color: rgba(14,17,23,0.8);
   transition: color 0.2s;
 }
 .nav-links a:hover,
 .nav-links a.aktiv { color: var(--grønn); }
-.navbar.scrolled .nav-links a { color: rgba(14,17,23,0.8); }
-.navbar.scrolled .nav-links a:hover,
-.navbar.scrolled .nav-links a.aktiv { color: var(--grønn); }
 
 .btn-nav {
   background: var(--grønn);
@@ -120,12 +113,11 @@ img { max-width: 100%; display: block; }
   display: block;
   width: 24px;
   height: 2px;
-  background: #fff;
+  background: var(--svart);
   margin: 5px 0;
   transition: all 0.3s;
   border-radius: 2px;
 }
-.navbar.scrolled .hamburger span { background: var(--svart); }
 
 .mobil-meny {
   display: none;
