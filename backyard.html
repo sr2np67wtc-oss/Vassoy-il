@@ -12,6 +12,13 @@
     .kort-teal { background: var(--teal); color: #fff; border: none; }
     .kort-teal h3, .kort-teal p, .kort-teal strong { color: #fff; }
     .kort-teal-kant { border: 2px solid rgba(0,180,160,0.25); background: rgba(0,180,160,0.06); }
+
+    /* Lav oppløsning på hero-bilde? Blur + zoom glatter ut pikslene */
+    .hero-bilde img {
+      filter: blur(3px) brightness(0.9);
+      transform: scale(1.08);
+      transform-origin: center 30%;
+    }
   </style>
 </head>
 <body>
@@ -55,7 +62,7 @@
 <section class="hero" style="min-height: 75vh;">
   <div class="hero-bilde">
     <img src="bilder/backyard.jpg" alt="Vassøy Backyard Ultra" style="object-position: center 30%;" />
-    <div class="hero-overlay" style="background: linear-gradient(rgba(0,180,160,0.45), rgba(0,0,0,0.55));"></div>
+    <div class="hero-overlay" style="background: linear-gradient(rgba(0,180,160,0.55), rgba(0,0,0,0.65));"></div>
   </div>
   <div class="hero-innhold" style="padding-top: 5rem;">
     <span class="chip">Alle klarer en runde</span>
@@ -77,7 +84,7 @@
       <div>
         <h2 style="font-size: 2.2rem; font-weight: 800; text-transform: uppercase; margin-bottom: 1.25rem;">Formatet</h2>
         <p style="color:var(--grå);font-size:1.05rem;line-height:1.8;margin-bottom:1rem;">
-          Vassøy Backyard Ultra ble arrangert for første gang 6. mai 2023, og har raskt blitt et enormt populært arrangement som arrangeres i mai hvert år. I 2024, 2025 & 2026 var løpet helt utsolgt!
+          Vassøy Backyard Ultra ble arrangert for første gang 6. mai 2023, og har raskt blitt et enormt populært arrangement som arrangeres i mai hvert år. I 2024, 2025 &amp; 2026 var løpet helt utsolgt!
         </p>
         <p style="color:var(--grå);font-size:1.05rem;line-height:1.8;margin-bottom:3rem;">
           Konseptet er enkelt, men brutalt: Løypa er 6.7 km. Du har én time på å fullføre. Starter du på neste runde før timen er gått? Det er opp til deg. Løpet går over maksimalt 12 runder (12 timer).
@@ -200,7 +207,7 @@
     </div>
     <h2 style="font-size:clamp(2rem,5vw,3rem);font-weight:800;text-transform:uppercase;margin-bottom:1rem;">Hold av 22. mai 2027!</h2>
     <p style="font-size:1.1rem;color:var(--grå);margin-bottom:1rem;line-height:1.8;">
-      Påmelding til Vassøy Backyard Ultra 2027 åpner i løpet av høsten. Løpet ble fulltegnet i 2024, 2025 & 2026, så her gjelder det å være rask!
+      Påmelding til Vassøy Backyard Ultra 2027 åpner i løpet av høsten. Løpet ble fulltegnet i 2024, 2025 &amp; 2026, så her gjelder det å være rask!
     </p>
     <p style="font-size:1rem;color:var(--grå);margin-bottom:2.5rem;line-height:1.8;">
       Følg oss på Instagram for å få beskjed når påmeldingen åpner.
