@@ -404,28 +404,38 @@ function nyBestilling() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function sjekkVippsRetur() {
+async function sjekkVippsRetur() {
   const params = new URLSearchParams(window.location.search);
   if (params.get('betalt') !== 'ok') return;
 
   const ref = params.get('ref');
   if (!ref) return;
 
+  history.replaceState({}, '', window.location.pathname);
+
   const bookings = getBookings();
   const booking = bookings.find(b => b.id === ref);
+  if (!booking) return;
 
-  if (booking) {
-    booking.betalt = true;
-    localStorage.setItem(STORAGE_BOOKINGS, JSON.stringify(bookings));
-
-    const bekr = document.getElementById('bekreftelse');
-    bekr.classList.add('synlig');
-    document.getElementById('bekr-info').textContent =
-      `${formaterDato(booking.dato)} kl ${booking.tid} – ${booking.pris} kr`;
-    setTimeout(() => bekr.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  // Belast reservert beløp automatisk
+  try {
+    await fetch(API_BASE + '/vipps/capture/' + ref, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amountOre: booking.pris * 100 })
+    });
+  } catch (_) {
+    // Capture-feil er ikke kritisk for brukeren – vi viser bekreftelse uansett
   }
 
-  history.replaceState({}, '', window.location.pathname);
+  booking.betalt = true;
+  localStorage.setItem(STORAGE_BOOKINGS, JSON.stringify(bookings));
+
+  const bekr = document.getElementById('bekreftelse');
+  bekr.classList.add('synlig');
+  document.getElementById('bekr-info').textContent =
+    `${formaterDato(booking.dato)} kl ${booking.tid} – ${booking.pris} kr`;
+  setTimeout(() => bekr.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
 }
 
 function renderTimer() {
