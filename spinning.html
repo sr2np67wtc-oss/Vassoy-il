@@ -283,8 +283,12 @@ function ukeNummer(datoStr) {
   return Math.ceil((diff / oneWeek) + startOfYear.getDay() / 7);
 }
 
-function getSessions() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_SESSIONS)) || []; } catch { return []; }
+async function getSessions() {
+  try {
+    const r = await fetch(API_BASE + '/sessions');
+    if (!r.ok) return [];
+    return await r.json();
+  } catch { return []; }
 }
 
 function getBookings() {
@@ -300,9 +304,9 @@ function oppdaterPris() {
   document.getElementById('pris-knapp').textContent = erMedlem ? '50 kr' : '100 kr';
 }
 
-function velgSession(id) {
+async function velgSession(id) {
   valgtSessionId = id;
-  const sessions = getSessions();
+  const sessions = await getSessions();
   const s = sessions.find(x => x.id === id);
   if (!s) return;
 
@@ -338,7 +342,7 @@ async function sendBestilling() {
     return;
   }
 
-  const sessions = getSessions();
+  const sessions = await getSessions();
   const s = sessions.find(x => x.id === valgtSessionId);
   if (!s) return;
 
@@ -438,12 +442,12 @@ async function sjekkVippsRetur() {
   setTimeout(() => bekr.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
 }
 
-function renderTimer() {
+async function renderTimer() {
   const container = document.getElementById('timer-liste');
   const idag = new Date();
   idag.setHours(0, 0, 0, 0);
 
-  const sessions = getSessions()
+  const sessions = (await getSessions())
     .filter(s => s.aktiv && new Date(s.dato + 'T23:59:59') >= idag)
     .sort((a, b) => (a.dato + a.tid).localeCompare(b.dato + b.tid));
 

@@ -276,7 +276,8 @@
 </div>
 
 <script>
-const PASSORD = 'Emmcri75';
+const PASSORD = 'VassoyIL25';
+const API_BASE = 'https://vassoy-il.replit.app/api';
 const STORAGE_SESSIONS = 'vassoy_spinning_sessions';
 const STORAGE_BOOKINGS = 'vassoy_spinning_bookings';
 
@@ -293,10 +294,13 @@ function formaterTidspunkt(isoStr) {
   return d.toLocaleString('nb-NO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
-function getSessions() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_SESSIONS)) || []; } catch { return []; }
+async function getSessions() {
+  try {
+    const r = await fetch(API_BASE + '/sessions', { headers: { 'X-Admin-Password': PASSORD } });
+    if (!r.ok) return [];
+    return await r.json();
+  } catch { return []; }
 }
-function saveSessions(s) { localStorage.setItem(STORAGE_SESSIONS, JSON.stringify(s)); }
 
 function getBookings() {
   try { return JSON.parse(localStorage.getItem(STORAGE_BOOKINGS)) || []; } catch { return []; }
@@ -304,7 +308,16 @@ function getBookings() {
 function saveBookings(b) { localStorage.setItem(STORAGE_BOOKINGS, JSON.stringify(b)); }
 
 function antallBookinger(sessionId) {
-  return getBookings().filter(b => b.sessionId === sessionId).length;
+  return getBookings().filter(b => b.sessionId === sessionId && b.betalt).length;
+}
+
+async function apiSession(method, id, body) {
+  const r = await fetch(API_BASE + '/sessions' + (id ? '/' + id : ''), {
+    method,
+    headers: { 'Content-Type': 'application/json', 'X-Admin-Password': PASSORD },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  return r.ok;
 }
 
 // --- AUTH ---
@@ -339,12 +352,12 @@ function byttFane(fane) {
 }
 
 // --- STATISTIKK ---
-function oppdaterStatistikk() {
+async function oppdaterStatistikk() {
   const idag = new Date(); idag.setHours(0,0,0,0);
-  const sessions = getSessions().filter(s => s.aktiv && new Date(s.dato + 'T23:59:59') >= idag);
+  const sessions = (await getSessions()).filter(s => s.aktiv && new Date(s.dato + 'T23:59:59') >= idag);
   const bookings = getBookings();
   const fremtidigeIds = sessions.map(s => s.id);
-  const fremtidigeBestillinger = bookings.filter(b => fremtidigeIds.includes(b.sessionId));
+  const fremtidigeBestillinger = bookings.filter(b => fremtidigeIds.includes(b.sessionId) && b.betalt);
   const inntekt = fremtidigeBestillinger.reduce((sum, b) => sum + b.pris, 0);
 
   document.getElementById('stat-timer').textContent = sessions.length;
@@ -353,89 +366,92 @@ function oppdaterStatistikk() {
 }
 
 // --- SESSIONS ---
-function leggTilTime() {
+async function leggTilTime() {
   const dato = document.getElementById('ny-dato').value;
   const tid = document.getElementById('ny-tid').value;
   const kap = parseInt(document.getElementById('ny-kapasitet').value) || 20;
 
   if (!dato) { alert('Velg en dato.'); return; }
 
-  const sessions = getSessions();
-  const finnes = sessions.find(s => s.dato === dato && s.tid === tid);
-  if (finnes) { visAlert('timeplan', 'En time på dette tidspunktet finnes allerede!', 'feil'); return; }
+  const sessions = await getSessions();
+  if (sessions.find(s => s.dato === dato && s.tid === tid)) {
+    visAlert('timeplan', 'En time på dette tidspunktet finnes allerede!', 'feil'); return;
+  }
 
-  sessions.push({ id: 'sess_' + Date.now(), dato, tid, kapasitet: kap, aktiv: true });
-  sessions.sort((a,b) => (a.dato+a.tid).localeCompare(b.dato+b.tid));
-  saveSessions(sessions);
-  renderSessioner();
-  oppdaterStatistikk();
-  visAlert('timeplan', `Time lagt til: ${formaterDato(dato)} kl ${tid}`, 'suksess');
+  const id = 'sess-' + Date.now();
+  const ok = await apiSession('POST', null, { id, dato, tid, kapasitet: kap });
+  if (ok) {
+    await renderSessioner();
+    await oppdaterStatistikk();
+    visAlert('timeplan', `Time lagt til: ${formaterDato(dato)} kl ${tid}`, 'suksess');
+  } else {
+    visAlert('timeplan', 'Feil ved lagring av time.', 'feil');
+  }
 }
 
-function leggTilUke() {
-  const sessions = getSessions();
-  const idag = new Date();
-  idag.setHours(0, 0, 0, 0);
-
-  // Find next 4 Tuesdays not already in sessions
-  let funnet = 0;
-  let d = new Date(idag);
-  let lagt = [];
+async function leggTilUke() {
+  const sessions = await getSessions();
+  const idag = new Date(); idag.setHours(0,0,0,0);
+  let funnet = 0, d = new Date(idag), lagt = [];
 
   while (funnet < 4) {
     d.setDate(d.getDate() + 1);
-    if (d.getDay() === 2) { // Tuesday
+    if (d.getDay() === 2) {
       const datoStr = d.toISOString().slice(0, 10);
-      ['09:00', '18:30'].forEach(tid => {
+      for (const tid of ['09:00', '18:30']) {
         if (!sessions.find(s => s.dato === datoStr && s.tid === tid)) {
-          sessions.push({ id: 'sess_' + Date.now() + '_' + tid, dato: datoStr, tid, kapasitet: 20, aktiv: true });
+          const id = 'sess-' + Date.now() + '-' + tid.replace(':', '');
+          await apiSession('POST', null, { id, dato: datoStr, tid, kapasitet: 20 });
           lagt.push(`${formaterDato(datoStr)} kl ${tid}`);
+          await new Promise(r => setTimeout(r, 5)); // unngå duplikat-ID
         }
-      });
+      }
       funnet++;
     }
   }
 
-  sessions.sort((a,b) => (a.dato+a.tid).localeCompare(b.dato+b.tid));
-  saveSessions(sessions);
-  renderSessioner();
-  oppdaterStatistikk();
-  if (lagt.length > 0) {
-    visAlert('timeplan', `Lagt til ${lagt.length} timer for de neste 4 tirsdagene.`, 'suksess');
-  } else {
-    visAlert('timeplan', 'Alle tirsdager i neste 4 uker er allerede lagt til.', 'feil');
+  await renderSessioner();
+  await oppdaterStatistikk();
+  visAlert('timeplan',
+    lagt.length > 0
+      ? `Lagt til ${lagt.length} timer for de neste 4 tirsdagene.`
+      : 'Alle tirsdager i neste 4 uker er allerede lagt til.',
+    lagt.length > 0 ? 'suksess' : 'feil'
+  );
+}
+
+async function toggleAktiv(id) {
+  const sessions = await getSessions();
+  const s = sessions.find(x => x.id === id);
+  if (s) {
+    await apiSession('PATCH', id, { aktiv: !s.aktiv });
+    await renderSessioner();
+    await oppdaterStatistikk();
   }
 }
 
-function toggleAktiv(id) {
-  const sessions = getSessions();
-  const s = sessions.find(x => x.id === id);
-  if (s) { s.aktiv = !s.aktiv; saveSessions(sessions); renderSessioner(); oppdaterStatistikk(); }
-}
-
-function slettSession(id) {
+async function slettSession(id) {
   const bookingCount = antallBookinger(id);
   const msg = bookingCount > 0
     ? `Denne timen har ${bookingCount} bestilling(er). Er du sikker på at du vil slette den?`
     : 'Er du sikker på at du vil slette denne timen?';
   if (!confirm(msg)) return;
-  saveSessions(getSessions().filter(s => s.id !== id));
+  await apiSession('DELETE', id);
   saveBookings(getBookings().filter(b => b.sessionId !== id));
-  renderSessioner();
-  oppdaterStatistikk();
+  await renderSessioner();
+  await oppdaterStatistikk();
 }
 
-function oppdaterKapasitet(id, nyKap) {
-  const sessions = getSessions();
-  const s = sessions.find(x => x.id === id);
-  if (s) { s.kapasitet = parseInt(nyKap) || 20; saveSessions(sessions); oppdaterStatistikk(); }
+async function oppdaterKapasitet(id, nyKap) {
+  await apiSession('PATCH', id, { kapasitet: parseInt(nyKap) || 20 });
+  await oppdaterStatistikk();
 }
 
 // --- RENDER SESSIONS ---
-function renderSessioner() {
+async function renderSessioner() {
   const container = document.getElementById('session-liste');
   const idag = new Date(); idag.setHours(0,0,0,0);
-  const sessions = getSessions().sort((a,b) => (a.dato+a.tid).localeCompare(b.dato+b.tid));
+  const sessions = (await getSessions()).sort((a,b) => (a.dato+a.tid).localeCompare(b.dato+b.tid));
   const fremtidige = sessions.filter(s => new Date(s.dato + 'T23:59:59') >= idag);
   const gamle = sessions.filter(s => new Date(s.dato + 'T23:59:59') < idag);
 
@@ -599,9 +615,9 @@ function visAlert(fane, melding, type) {
 }
 
 // --- INIT ---
-function renderAlt() {
-  renderSessioner();
-  oppdaterStatistikk();
+async function renderAlt() {
+  await renderSessioner();
+  await oppdaterStatistikk();
 }
 
 // Auto-login fra session
