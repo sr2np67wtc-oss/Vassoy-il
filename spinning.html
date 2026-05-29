@@ -346,7 +346,7 @@ async function sendBestilling() {
   if (brukt >= s.kapasitet) { feil.textContent = 'Beklager – denne timen er nå full.'; feil.style.display = 'block'; return; }
 
   const pris = erMedlem ? 50 : 100;
-  const bookingId = 'book_' + Date.now();
+  const bookingId = 'book-' + Date.now();
 
   const booking = {
     id: bookingId,
