@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin – Spinning Vassøy IL</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="bilder/logo.png">
+  <meta name="theme-color" content="#198553">
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { background: var(--grå-lys); }
+
+    .admin-topbar {
+      background: var(--svart);
+      padding: 0.75rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+    }
+    .admin-topbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    .admin-logo { display: flex; align-items: center; gap: 0.75rem; color: #fff; }
+    .admin-logo img { width: 32px; height: 32px; border-radius: 50%; background: #fff; padding: 2px; }
+    .admin-logo span { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1rem; }
+    .admin-logo small { color: rgba(255,255,255,0.5); font-size: 0.8rem; font-weight: 400; margin-left: 0.5rem; }
+
+    .login-wrapper {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+    .login-kort {
+      background: #fff;
+      border-radius: 20px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.1);
+    }
+
+    .fane-bar {
+      display: flex;
+      background: #fff;
+      border-radius: 12px;
+      padding: 0.25rem;
+      border: 1px solid var(--kant);
+      margin-bottom: 2rem;
+      width: fit-content;
+    }
+    .fane-btn {
+      padding: 0.55rem 1.5rem;
+      border-radius: 9px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: var(--grå);
+      transition: all 0.2s;
+    }
+    .fane-btn.aktiv { background: var(--grønn); color: #fff; }
+
+    .session-rad {
+      background: #fff;
+      border-radius: 14px;
+      border: 1px solid var(--kant);
+      margin-bottom: 1rem;
+      overflow: hidden;
+      transition: box-shadow 0.2s;
+    }
+    .session-rad:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+    .session-rad-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.25rem;
+      flex-wrap: wrap;
+    }
+    .session-dato-boks {
+      width: 48px;
+      height: 48px;
+      background: var(--grønn-lys);
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .session-dato-boks span:first-child { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--grønn); }
+    .session-dato-boks span:last-child { font-size: 1.3rem; font-weight: 800; color: var(--grønn); line-height: 1.1; }
+
+    .booking-rad {
+      border-top: 1px solid var(--kant);
+      padding: 0.75rem 1.25rem;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    .booking-rad:nth-child(even) { background: var(--grå-lys); }
+
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: #d1d5db;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      left: 3px;
+      top: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .toggle-switch input:checked + .toggle-slider { background: var(--grønn); }
+    .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+    .stat-kort {
+      background: #fff;
+      border-radius: 14px;
+      border: 1px solid var(--kant);
+      padding: 1.25rem 1.5rem;
+      text-align: center;
+    }
+    .stat-tall { font-size: 2.5rem; font-weight: 800; color: var(--grønn); font-family: 'Space Grotesk', sans-serif; line-height: 1; margin-bottom: 0.25rem; }
+    .stat-label { font-size: 0.85rem; color: var(--grå); font-weight: 500; }
+
+    .alert { padding: 0.75rem 1rem; border-radius: 10px; font-size: 0.9rem; margin-bottom: 1rem; display: none; }
+    .alert-suksess { background: var(--grønn-lys); color: var(--grønn-mørk); border: 1px solid rgba(25,133,83,0.2); }
+    .alert-feil { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    .alert.synlig { display: block; }
+
+    @media print {
+      .admin-topbar, .fane-bar, .ingen-print { display: none; }
+      body { background: #fff; }
+      .session-rad { box-shadow: none; border: 1px solid #ddd; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-wrapper">
+    <div class="login-kort">
+      <div style="text-align:center;margin-bottom:2rem;">
+        <img src="bilder/logo.png" alt="Vassøy IL" style="width:64px;height:64px;border-radius:50%;margin:0 auto 1rem;display:block;box-shadow:0 2px 12px rgba(0,0,0,0.1);" />
+        <h1 style="font-size:1.5rem;font-weight:700;margin-bottom:0.25rem;">Admin – Spinning</h1>
+        <p style="color:var(--grå);font-size:0.9rem;">Vassøy Idrettslag</p>
+      </div>
+      <div class="skjema-gruppe">
+        <label for="passord-input">Passord</label>
+        <input type="password" id="passord-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')loggInn()" />
+      </div>
+      <div id="login-feil" class="alert alert-feil">Feil passord. Prøv igjen.</div>
+      <button onclick="loggInn()" class="btn btn-primær btn-full" style="margin-top:0.5rem;">Logg inn</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN DASHBOARD -->
+<div id="admin-dashboard" style="display:none;">
+
+  <div class="admin-topbar">
+    <div class="container">
+      <div class="admin-topbar-inner">
+        <div class="admin-logo">
+          <img src="bilder/logo.png" alt="Vassøy IL" />
+          <span>Vassøy IL<small>Admin · Spinning</small></span>
+        </div>
+        <button onclick="loggUt()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.8);padding:0.4rem 1rem;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:500;">Logg ut</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container" style="padding-top:2.5rem;padding-bottom:4rem;">
+
+    <!-- STATISTIKK -->
+    <div class="grid-3" style="margin-bottom:2.5rem;">
+      <div class="stat-kort">
+        <div class="stat-tall" id="stat-timer">0</div>
+        <div class="stat-label">Aktive timer</div>
+      </div>
+      <div class="stat-kort">
+        <div class="stat-tall" id="stat-bestillinger">0</div>
+        <div class="stat-label">Bestillinger totalt</div>
+      </div>
+      <div class="stat-kort">
+        <div class="stat-tall" id="stat-inntekt">0</div>
+        <div class="stat-label">Estimert inntekt (kr)</div>
+      </div>
+    </div>
+
+    <!-- FANER -->
+    <div class="fane-bar ingen-print">
+      <button class="fane-btn aktiv" id="fane-timeplan" onclick="byttFane('timeplan')">Timeplan</button>
+      <button class="fane-btn" id="fane-bestillinger" onclick="byttFane('bestillinger')">Bestillinger</button>
+    </div>
+
+    <!-- FANE: TIMEPLAN -->
+    <div id="panel-timeplan">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;">
+        <h2 style="font-size:1.5rem;font-weight:700;">Kommende tirsdager</h2>
+        <button onclick="leggTilUke()" class="btn btn-primær ingen-print" style="padding:0.5rem 1.25rem;font-size:0.9rem;">
+          + Legg til neste tirsdager
+        </button>
+      </div>
+
+      <div id="alert-timeplan" class="alert alert-suksess"></div>
+
+      <!-- Legg til enkelttime -->
+      <div class="session-rad" style="margin-bottom:2rem;background:var(--grønn-lys);border-color:rgba(25,133,83,0.2);">
+        <div style="padding:1.25rem;">
+          <h3 style="font-size:1rem;font-weight:700;color:var(--grønn-mørk);margin-bottom:1rem;">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:0.4rem;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Legg til enkelttime
+          </h3>
+          <div class="skjema-rad" style="margin-bottom:1rem;">
+            <div class="skjema-gruppe" style="margin-bottom:0;">
+              <label for="ny-dato">Dato</label>
+              <input type="date" id="ny-dato" />
+            </div>
+            <div class="skjema-gruppe" style="margin-bottom:0;">
+              <label for="ny-tid">Tid</label>
+              <select id="ny-tid">
+                <option value="09:00">09:00</option>
+                <option value="18:30">18:30</option>
+              </select>
+            </div>
+          </div>
+          <div class="skjema-gruppe" style="margin-bottom:1rem;">
+            <label for="ny-kapasitet">Maks plasser</label>
+            <input type="number" id="ny-kapasitet" value="20" min="1" max="50" />
+          </div>
+          <button onclick="leggTilTime()" class="btn btn-primær" style="padding:0.5rem 1.5rem;font-size:0.9rem;">Legg til time</button>
+        </div>
+      </div>
+
+      <div id="session-liste"></div>
+    </div>
+
+    <!-- FANE: BESTILLINGER -->
+    <div id="panel-bestillinger" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;">
+        <h2 style="font-size:1.5rem;font-weight:700;">Alle bestillinger</h2>
+        <button onclick="window.print()" class="btn btn-kantlinje ingen-print" style="padding:0.5rem 1.25rem;font-size:0.9rem;">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Skriv ut
+        </button>
+      </div>
+      <div id="bestilling-liste"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const PASSORD = 'VassoyIL25';
+const STORAGE_SESSIONS = 'vassoy_spinning_sessions';
+const STORAGE_BOOKINGS = 'vassoy_spinning_bookings';
+
+const DAGER_NO = ['Søndag','Mandag','Tirsdag','Onsdag','Torsdag','Fredag','Lørdag'];
+const MÅNEDER_NO = ['januar','februar','mars','april','mai','juni','juli','august','september','oktober','november','desember'];
+
+function formaterDato(datoStr) {
+  const d = new Date(datoStr + 'T12:00:00');
+  return `${DAGER_NO[d.getDay()]} ${d.getDate()}. ${MÅNEDER_NO[d.getMonth()]}`;
+}
+
+function formaterTidspunkt(isoStr) {
+  const d = new Date(isoStr);
+  return d.toLocaleString('nb-NO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function getSessions() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_SESSIONS)) || []; } catch { return []; }
+}
+function saveSessions(s) { localStorage.setItem(STORAGE_SESSIONS, JSON.stringify(s)); }
+
+function getBookings() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_BOOKINGS)) || []; } catch { return []; }
+}
+function saveBookings(b) { localStorage.setItem(STORAGE_BOOKINGS, JSON.stringify(b)); }
+
+function antallBookinger(sessionId) {
+  return getBookings().filter(b => b.sessionId === sessionId).length;
+}
+
+// --- AUTH ---
+function loggInn() {
+  const pw = document.getElementById('passord-input').value;
+  const feil = document.getElementById('login-feil');
+  if (pw === PASSORD) {
+    sessionStorage.setItem('spinning_admin', '1');
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-dashboard').style.display = 'block';
+    renderAlt();
+  } else {
+    feil.classList.add('synlig');
+    document.getElementById('passord-input').value = '';
+  }
+}
+
+function loggUt() {
+  sessionStorage.removeItem('spinning_admin');
+  document.getElementById('admin-dashboard').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('passord-input').value = '';
+}
+
+// --- FANER ---
+function byttFane(fane) {
+  ['timeplan','bestillinger'].forEach(f => {
+    document.getElementById('panel-' + f).style.display = f === fane ? 'block' : 'none';
+    document.getElementById('fane-' + f).classList.toggle('aktiv', f === fane);
+  });
+  if (fane === 'bestillinger') renderBestillinger();
+}
+
+// --- STATISTIKK ---
+function oppdaterStatistikk() {
+  const idag = new Date(); idag.setHours(0,0,0,0);
+  const sessions = getSessions().filter(s => s.aktiv && new Date(s.dato + 'T23:59:59') >= idag);
+  const bookings = getBookings();
+  const fremtidigeIds = sessions.map(s => s.id);
+  const fremtidigeBestillinger = bookings.filter(b => fremtidigeIds.includes(b.sessionId));
+  const inntekt = fremtidigeBestillinger.reduce((sum, b) => sum + b.pris, 0);
+
+  document.getElementById('stat-timer').textContent = sessions.length;
+  document.getElementById('stat-bestillinger').textContent = fremtidigeBestillinger.length;
+  document.getElementById('stat-inntekt').textContent = inntekt.toLocaleString('nb-NO');
+}
+
+// --- SESSIONS ---
+function leggTilTime() {
+  const dato = document.getElementById('ny-dato').value;
+  const tid = document.getElementById('ny-tid').value;
+  const kap = parseInt(document.getElementById('ny-kapasitet').value) || 20;
+
+  if (!dato) { alert('Velg en dato.'); return; }
+
+  const sessions = getSessions();
+  const finnes = sessions.find(s => s.dato === dato && s.tid === tid);
+  if (finnes) { visAlert('timeplan', 'En time på dette tidspunktet finnes allerede!', 'feil'); return; }
+
+  sessions.push({ id: 'sess_' + Date.now(), dato, tid, kapasitet: kap, aktiv: true });
+  sessions.sort((a,b) => (a.dato+a.tid).localeCompare(b.dato+b.tid));
+  saveSessions(sessions);
+  renderSessioner();
+  oppdaterStatistikk();
+  visAlert('timeplan', `Time lagt til: ${formaterDato(dato)} kl ${tid}`, 'suksess');
+}
+
+function leggTilUke() {
+  const sessions = getSessions();
+  const idag = new Date();
+  idag.setHours(0, 0, 0, 0);
+
+  // Find next 4 Tuesdays not already in sessions
+  let funnet = 0;
+  let d = new Date(idag);
+  let lagt = [];
+
+  while (funnet < 4) {
+    d.setDate(d.getDate() + 1);
+    if (d.getDay() === 2) { // Tuesday
+      const datoStr = d.toISOString().slice(0, 10);
+      ['09:00', '18:30'].forEach(tid => {
+        if (!sessions.find(s => s.dato === datoStr && s.tid === tid)) {
+          sessions.push({ id: 'sess_' + Date.now() + '_' + tid, dato: datoStr, tid, kapasitet: 20, aktiv: true });
+          lagt.push(`${formaterDato(datoStr)} kl ${tid}`);
+        }
+      });
+      funnet++;
+    }
+  }
+
+  sessions.sort((a,b) => (a.dato+a.tid).localeCompare(b.dato+b.tid));
+  saveSessions(sessions);
+  renderSessioner();
+  oppdaterStatistikk();
+  if (lagt.length > 0) {
+    visAlert('timeplan', `Lagt til ${lagt.length} timer for de neste 4 tirsdagene.`, 'suksess');
+  } else {
+    visAlert('timeplan', 'Alle tirsdager i neste 4 uker er allerede lagt til.', 'feil');
+  }
+}
+
+function toggleAktiv(id) {
+  const sessions = getSessions();
+  const s = sessions.find(x => x.id === id);
+  if (s) { s.aktiv = !s.aktiv; saveSessions(sessions); renderSessioner(); oppdaterStatistikk(); }
+}
+
+function slettSession(id) {
+  const bookingCount = antallBookinger(id);
+  const msg = bookingCount > 0
+    ? `Denne timen har ${bookingCount} bestilling(er). Er du sikker på at du vil slette den?`
+    : 'Er du sikker på at du vil slette denne timen?';
+  if (!confirm(msg)) return;
+  saveSessions(getSessions().filter(s => s.id !== id));
+  saveBookings(getBookings().filter(b => b.sessionId !== id));
+  renderSessioner();
+  oppdaterStatistikk();
+}
+
+function oppdaterKapasitet(id, nyKap) {
+  const sessions = getSessions();
+  const s = sessions.find(x => x.id === id);
+  if (s) { s.kapasitet = parseInt(nyKap) || 20; saveSessions(sessions); oppdaterStatistikk(); }
+}
+
+// --- RENDER SESSIONS ---
+function renderSessioner() {
+  const container = document.getElementById('session-liste');
+  const idag = new Date(); idag.setHours(0,0,0,0);
+  const sessions = getSessions().sort((a,b) => (a.dato+a.tid).localeCompare(b.dato+b.tid));
+  const fremtidige = sessions.filter(s => new Date(s.dato + 'T23:59:59') >= idag);
+  const gamle = sessions.filter(s => new Date(s.dato + 'T23:59:59') < idag);
+
+  let html = '';
+
+  if (fremtidige.length === 0) {
+    html += `<div style="text-align:center;padding:3rem;color:var(--grå);">
+      <p style="font-size:1rem;font-weight:600;margin-bottom:0.5rem;">Ingen kommende timer</p>
+      <p>Klikk "Legg til neste tirsdager" for å generere timer automatisk.</p>
+    </div>`;
+  }
+
+  [...fremtidige, ...(gamle.length ? [{ _divider: 'Tidligere timer' }] : []), ...gamle].forEach(s => {
+    if (s._divider) {
+      html += `<h3 style="font-size:0.85rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--grå);margin:2rem 0 1rem;">${s._divider}</h3>`;
+      return;
+    }
+
+    const brukt = antallBookinger(s.id);
+    const ledig = s.kapasitet - brukt;
+    const erPassert = new Date(s.dato + 'T23:59:59') < idag;
+
+    html += `
+    <div class="session-rad">
+      <div class="session-rad-header">
+        <div class="session-dato-boks" style="${erPassert ? 'opacity:0.5;' : ''}">
+          <span>${new Date(s.dato + 'T12:00:00').toLocaleString('nb', {month:'short'}).toUpperCase()}</span>
+          <span>${new Date(s.dato + 'T12:00:00').getDate()}</span>
+        </div>
+        <div style="flex:1;">
+          <p style="font-weight:700;font-size:1rem;margin-bottom:0.15rem;">${formaterDato(s.dato)} kl ${s.tid}</p>
+          <p style="color:var(--grå);font-size:0.875rem;">${brukt} av ${s.kapasitet} plasser booket &nbsp;·&nbsp; ${ledig > 0 ? ledig + ' ledig' : '<span style="color:#ef4444;font-weight:600;">Fullt</span>'}</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;" class="ingen-print">
+          <label class="toggle-switch" title="${s.aktiv ? 'Aktiv' : 'Inaktiv'}">
+            <input type="checkbox" ${s.aktiv ? 'checked' : ''} onchange="toggleAktiv('${s.id}')">
+            <span class="toggle-slider"></span>
+          </label>
+          <span style="font-size:0.8rem;color:var(--grå);">${s.aktiv ? 'Synlig' : 'Skjult'}</span>
+          <button onclick="slettSession('${s.id}')" style="background:none;border:none;cursor:pointer;color:#ef4444;padding:0.25rem;" title="Slett time">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>
+          </button>
+        </div>
+      </div>
+      ${brukt > 0 ? renderBookingRadForSession(s.id) : ''}
+    </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+function renderBookingRadForSession(sessionId) {
+  const bookings = getBookings().filter(b => b.sessionId === sessionId);
+  if (bookings.length === 0) return '';
+
+  let html = `<div style="padding:0 0 0.5rem;">
+    <div style="padding:0.5rem 1.25rem;background:var(--grønn-lys);display:flex;align-items:center;gap:0.5rem;">
+      <svg width="14" height="14" fill="none" stroke="var(--grønn)" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      <span style="font-size:0.8rem;font-weight:700;color:var(--grønn-mørk);">${bookings.length} bestilling${bookings.length > 1 ? 'er' : ''}</span>
+    </div>`;
+
+  bookings.forEach(b => {
+    html += `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0.6rem 1.25rem;border-top:1px solid var(--kant);flex-wrap:wrap;gap:0.5rem;">
+      <div>
+        <span style="font-weight:600;font-size:0.9rem;">${b.navn}</span>
+        <span style="color:var(--grå);font-size:0.85rem;margin-left:0.75rem;">${b.telefon}</span>
+        <span style="margin-left:0.5rem;font-size:0.75rem;padding:0.15rem 0.5rem;border-radius:999px;background:${b.erMedlem ? 'var(--grønn-lys)' : '#f3f4f6'};color:${b.erMedlem ? 'var(--grønn)' : 'var(--grå)'};">${b.erMedlem ? 'Medlem' : 'Ikke-m.'}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.75rem;" class="ingen-print">
+        <span style="font-weight:700;font-size:0.9rem;">${b.pris} kr</span>
+        <button onclick="toggleBetalt('${b.id}')" style="padding:0.25rem 0.75rem;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;border:1.5px solid ${b.betalt ? 'var(--grønn)' : 'var(--kant)'};background:${b.betalt ? 'var(--grønn-lys)' : '#fff'};color:${b.betalt ? 'var(--grønn)' : 'var(--grå)'};">${b.betalt ? '✓ Betalt' : 'Merk betalt'}</button>
+        <button onclick="slettBestilling('${b.id}')" style="background:none;border:none;cursor:pointer;color:#ef4444;padding:0.2rem;" title="Slett bestilling">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>`;
+  });
+
+  html += '</div>';
+  return html;
+}
+
+// --- RENDER BESTILLINGER (oversikt) ---
+function renderBestillinger() {
+  const container = document.getElementById('bestilling-liste');
+  const bookings = getBookings().sort((a,b) => b.timestamp.localeCompare(a.timestamp));
+
+  if (bookings.length === 0) {
+    container.innerHTML = `<div style="text-align:center;padding:4rem;color:var(--grå);">
+      <p style="font-size:1rem;font-weight:600;margin-bottom:0.5rem;">Ingen bestillinger ennå</p>
+    </div>`;
+    return;
+  }
+
+  let html = `
+    <div class="session-rad" style="overflow:visible;">
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;min-width:600px;">
+          <thead>
+            <tr style="background:var(--grå-lys);">
+              <th style="text-align:left;padding:0.75rem 1rem;font-size:0.8rem;font-weight:700;color:var(--grå);text-transform:uppercase;letter-spacing:0.05em;">Navn</th>
+              <th style="text-align:left;padding:0.75rem 1rem;font-size:0.8rem;font-weight:700;color:var(--grå);text-transform:uppercase;letter-spacing:0.05em;">Telefon</th>
+              <th style="text-align:left;padding:0.75rem 1rem;font-size:0.8rem;font-weight:700;color:var(--grå);text-transform:uppercase;letter-spacing:0.05em;">Time</th>
+              <th style="text-align:left;padding:0.75rem 1rem;font-size:0.8rem;font-weight:700;color:var(--grå);text-transform:uppercase;letter-spacing:0.05em;">Type</th>
+              <th style="text-align:left;padding:0.75rem 1rem;font-size:0.8rem;font-weight:700;color:var(--grå);text-transform:uppercase;letter-spacing:0.05em;">Pris</th>
+              <th style="text-align:left;padding:0.75rem 1rem;font-size:0.8rem;font-weight:700;color:var(--grå);text-transform:uppercase;letter-spacing:0.05em;">Status</th>
+              <th style="padding:0.75rem 1rem;" class="ingen-print"></th>
+            </tr>
+          </thead>
+          <tbody>`;
+
+  bookings.forEach(b => {
+    html += `
+      <tr style="border-top:1px solid var(--kant);">
+        <td style="padding:0.75rem 1rem;font-weight:600;font-size:0.9rem;">${b.navn}</td>
+        <td style="padding:0.75rem 1rem;color:var(--grå);font-size:0.9rem;">${b.telefon}</td>
+        <td style="padding:0.75rem 1rem;font-size:0.9rem;">${formaterDato(b.dato)} kl ${b.tid}</td>
+        <td style="padding:0.75rem 1rem;">
+          <span style="font-size:0.78rem;padding:0.2rem 0.6rem;border-radius:999px;background:${b.erMedlem ? 'var(--grønn-lys)' : '#f3f4f6'};color:${b.erMedlem ? 'var(--grønn)' : 'var(--grå)'};">${b.erMedlem ? 'Medlem' : 'Ikke-m.'}</span>
+        </td>
+        <td style="padding:0.75rem 1rem;font-weight:700;font-size:0.9rem;">${b.pris} kr</td>
+        <td style="padding:0.75rem 1rem;">
+          <span style="font-size:0.78rem;padding:0.2rem 0.6rem;border-radius:999px;font-weight:600;background:${b.betalt ? 'var(--grønn-lys)' : '#fef3c7'};color:${b.betalt ? 'var(--grønn)' : '#92400e'};">${b.betalt ? '✓ Betalt' : 'Venter'}</span>
+        </td>
+        <td style="padding:0.75rem 1rem;" class="ingen-print">
+          <div style="display:flex;gap:0.5rem;">
+            <button onclick="toggleBetalt('${b.id}');renderBestillinger();" style="padding:0.2rem 0.6rem;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer;border:1.5px solid ${b.betalt ? 'var(--grønn)' : 'var(--kant)'};background:${b.betalt ? 'var(--grønn-lys)' : '#fff'};color:${b.betalt ? 'var(--grønn)' : 'var(--grå)'};">${b.betalt ? 'Angre' : 'Betalt'}</button>
+            <button onclick="slettBestilling('${b.id}');renderBestillinger();" style="background:none;border:none;cursor:pointer;color:#ef4444;padding:0.2rem;">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        </td>
+      </tr>`;
+  });
+
+  html += '</tbody></table></div></div>';
+  container.innerHTML = html;
+}
+
+// --- HANDLINGER ---
+function toggleBetalt(bookingId) {
+  const bookings = getBookings();
+  const b = bookings.find(x => x.id === bookingId);
+  if (b) { b.betalt = !b.betalt; saveBookings(bookings); renderSessioner(); oppdaterStatistikk(); }
+}
+
+function slettBestilling(bookingId) {
+  if (!confirm('Slett denne bestillingen?')) return;
+  saveBookings(getBookings().filter(b => b.id !== bookingId));
+  renderSessioner();
+  renderBestillinger();
+  oppdaterStatistikk();
+}
+
+function visAlert(fane, melding, type) {
+  const el = document.getElementById('alert-' + fane);
+  el.className = `alert alert-${type} synlig`;
+  el.textContent = melding;
+  setTimeout(() => el.classList.remove('synlig'), 4000);
+}
+
+// --- INIT ---
+function renderAlt() {
+  renderSessioner();
+  oppdaterStatistikk();
+}
+
+// Auto-login fra session
+window.addEventListener('DOMContentLoaded', () => {
+  if (sessionStorage.getItem('spinning_admin') === '1') {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-dashboard').style.display = 'block';
+    renderAlt();
+  }
+
+  // Sett standard dato til neste tirsdag
+  const d = new Date();
+  while (d.getDay() !== 2) d.setDate(d.getDate() + 1);
+  document.getElementById('ny-dato').value = d.toISOString().slice(0, 10);
+});
+</script>
+</body>
+</html>

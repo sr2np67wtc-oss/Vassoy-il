@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Book spinningtime – Vassøy IL</title>
+  <meta name="description" content="Book spinningtime hos Vassøy IL. Tirsdager kl 09:00 og 18:30. Medlemmer 50 kr, ikke-medlemmer 100 kr." />
+  <link rel="icon" type="image/png" sizes="32x32" href="bilder/logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="bilder/logo.png">
+  <meta name="theme-color" content="#198553">
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .time-kort {
+      background: #fff;
+      border-radius: 16px;
+      border: 1.5px solid var(--kant);
+      overflow: hidden;
+      transition: box-shadow 0.2s, border-color 0.2s;
+      cursor: pointer;
+    }
+    .time-kort:hover { box-shadow: 0 4px 20px rgba(25,133,83,0.12); border-color: var(--grønn); }
+    .time-kort.valgt { border-color: var(--grønn); box-shadow: 0 0 0 3px rgba(25,133,83,0.15); }
+    .time-kort.full { border-color: #e5e7eb; opacity: 0.6; cursor: not-allowed; }
+    .time-kort.full:hover { box-shadow: none; border-color: #e5e7eb; }
+
+    .plass-bar { height: 6px; background: var(--grå-lys); border-radius: 999px; overflow: hidden; margin-top: 0.5rem; }
+    .plass-fill { height: 100%; border-radius: 999px; background: var(--grønn); transition: width 0.4s; }
+    .plass-fill.lav { background: #f59e0b; }
+    .plass-fill.full { background: #ef4444; }
+
+    .booking-panel {
+      display: none;
+      background: #fff;
+      border: 1.5px solid var(--grønn);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-top: 2rem;
+      box-shadow: 0 8px 40px rgba(25,133,83,0.12);
+    }
+    .booking-panel.synlig { display: block; animation: slideIn 0.3s ease; }
+    @keyframes slideIn { from { opacity:0; transform: translateY(-12px); } to { opacity:1; transform: translateY(0); } }
+
+    .pris-toggle { display: flex; gap: 0; border: 1.5px solid var(--kant); border-radius: 12px; overflow: hidden; margin-bottom: 1.5rem; }
+    .pris-toggle label { flex: 1; text-align: center; padding: 0.75rem 1rem; cursor: pointer; transition: all 0.2s; font-weight: 500; font-size: 0.95rem; border: none; }
+    .pris-toggle input[type="radio"] { display: none; }
+    .pris-toggle input[type="radio"]:checked + label { background: var(--grønn); color: #fff; }
+
+    .bekreftelse {
+      display: none;
+      background: var(--grønn-lys);
+      border: 1.5px solid var(--grønn);
+      border-radius: 20px;
+      padding: 3rem 2rem;
+      text-align: center;
+      margin-top: 2rem;
+    }
+    .bekreftelse.synlig { display: block; animation: slideIn 0.3s ease; }
+
+    .uke-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--grå);
+      margin: 2rem 0 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--kant);
+    }
+    .ingen-timer {
+      text-align: center;
+      padding: 4rem 1rem;
+      color: var(--grå);
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .badge-grønn { background: var(--grønn-lys); color: var(--grønn); }
+    .badge-gul { background: #fef3c7; color: #92400e; }
+    .badge-rød { background: #fee2e2; color: #991b1b; }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<header class="navbar" id="navbar">
+  <div class="container">
+    <div class="navbar-inner">
+      <a href="index.html" class="navbar-logo">
+        <img src="bilder/logo.png" alt="Vassøy IL logo" />
+        <span>Vassøy IL</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html">Hjemside</a></li>
+        <li><a href="spinning.html">Spinning</a></li>
+        <li><a href="leie.html">Leie av idrettslokalet</a></li>
+        <li><a href="diskgolf.html">Disc Golf</a></li>
+        <li><a href="backyard.html">Backyard Ultra</a></li>
+        <li><a href="https://www.minidrett.no" target="_blank" class="btn-nav">Bli medlem</a></li>
+      </ul>
+      <button class="hamburger" aria-label="Meny">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+  <div class="mobil-meny">
+    <ul>
+      <li><a href="index.html">Hjemside</a></li>
+      <li><a href="spinning.html">Spinning</a></li>
+      <li><a href="leie.html">Leie av idrettslokalet</a></li>
+      <li><a href="diskgolf.html">Disc Golf</a></li>
+      <li><a href="backyard.html">Backyard Ultra</a></li>
+    </ul>
+    <a href="https://www.minidrett.no" target="_blank" class="btn-mobil">Bli medlem – kun 300,-/år</a>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero" style="min-height: 45vh;">
+  <div class="hero-bilde">
+    <img src="bilder/spinning.png" alt="Spinning" style="object-position: center 40%;" />
+    <div class="hero-overlay" style="background: linear-gradient(rgba(14,17,23,0.55), rgba(25,133,83,0.4));"></div>
+  </div>
+  <div class="hero-innhold" style="padding-top: 5rem;">
+    <span class="chip">Tirsdager · 09:00 og 18:30</span>
+    <h1 style="font-size: clamp(2.2rem, 6vw, 4rem); font-weight: 800; margin-bottom: 0.75rem;">Book spinningtime</h1>
+    <p style="font-size: 1.1rem; margin-bottom: 0;">Velg en ledig time nedenfor og fyll inn dine opplysninger.</p>
+  </div>
+</section>
+
+<!-- PRIS-INFO -->
+<section style="background: var(--grønn); padding: 1.25rem 0;">
+  <div class="container">
+    <div style="display:flex; align-items:center; justify-content:center; gap:3rem; flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:0.75rem;color:#fff;">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span><strong>Medlemmer:</strong> 50 kr</span>
+      </div>
+      <div style="width:1px;height:24px;background:rgba(255,255,255,0.3);"></div>
+      <div style="display:flex;align-items:center;gap:0.75rem;color:#fff;">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span><strong>Ikke-medlemmer:</strong> 100 kr</span>
+      </div>
+      <div style="width:1px;height:24px;background:rgba(255,255,255,0.3);"></div>
+      <div style="display:flex;align-items:center;gap:0.75rem;color:#fff;">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span>Betaling via Vipps etter booking</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TIMER -->
+<section class="seksjon" style="background: var(--grå-lys); min-height: 60vh;">
+  <div class="container" style="max-width: 800px;">
+    <div id="timer-liste"></div>
+
+    <!-- BOOKING PANEL -->
+    <div class="booking-panel" id="booking-panel">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;">
+        <div>
+          <p style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--grå);font-weight:700;margin-bottom:0.25rem;">Du booker</p>
+          <h3 id="valgt-info" style="font-size:1.3rem;font-weight:700;"></h3>
+        </div>
+        <button onclick="lukkBooking()" style="background:none;border:none;cursor:pointer;color:var(--grå);display:flex;align-items:center;gap:0.4rem;font-size:0.9rem;font-weight:500;">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Avbryt
+        </button>
+      </div>
+
+      <div class="pris-toggle">
+        <input type="radio" id="med-ja" name="medlem" value="ja" checked onchange="oppdaterPris()">
+        <label for="med-ja">
+          Medlem Vassøy IL<br>
+          <strong style="font-size:1.1rem;">50 kr</strong>
+        </label>
+        <input type="radio" id="med-nei" name="medlem" value="nei" onchange="oppdaterPris()">
+        <label for="med-nei">
+          Ikke-medlem<br>
+          <strong style="font-size:1.1rem;">100 kr</strong>
+        </label>
+      </div>
+
+      <div class="skjema-gruppe">
+        <label for="navn">Fullt navn</label>
+        <input type="text" id="navn" placeholder="Ola Nordmann" autocomplete="name" />
+      </div>
+      <div class="skjema-gruppe">
+        <label for="telefon">Telefonnummer</label>
+        <input type="tel" id="telefon" placeholder="400 00 000" autocomplete="tel" />
+      </div>
+
+      <div style="background:var(--grønn-lys);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem;">
+        <svg width="20" height="20" fill="none" stroke="var(--grønn)" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p style="font-size:0.9rem;color:var(--grønn-mørk);margin:0;">Betaling skjer via Vipps. Du mottar betalingsinformasjon etter at bestillingen er registrert.</p>
+      </div>
+
+      <div id="feil-melding" style="display:none;background:#fee2e2;border-radius:10px;padding:0.75rem 1rem;margin-bottom:1rem;color:#991b1b;font-size:0.9rem;"></div>
+
+      <button onclick="sendBestilling()" class="btn btn-primær btn-full btn-lg">
+        Bekreft bestilling – <span id="pris-knapp">50 kr</span>
+      </button>
+    </div>
+
+    <!-- BEKREFTELSE -->
+    <div class="bekreftelse" id="bekreftelse">
+      <div style="width:72px;height:72px;background:var(--grønn);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;">
+        <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h2 style="font-size:1.8rem;font-weight:700;color:var(--grønn);margin-bottom:0.75rem;">Plass reservert!</h2>
+      <p id="bekr-info" style="font-size:1.1rem;color:var(--svart);margin-bottom:0.5rem;font-weight:600;"></p>
+      <p style="color:var(--grå);margin-bottom:2rem;">Du vil bli kontaktet med betalingsinformasjon. Ta med bekreftelses-SMS til timen.</p>
+      <button onclick="nyBestilling()" class="btn btn-kantlinje">Book en time til</button>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">
+          <img src="bilder/logo.png" alt="Vassøy IL logo" />
+          <span>Vassøy IL</span>
+        </div>
+        <p>Et lite, vennlig idrettslag i hjertet av Vassøy. Vi bygger et sterkt lokalsamfunn gjennom idrett, samhold og glede.</p>
+      </div>
+      <div>
+        <h3>Kontakt oss</h3>
+        <address>
+          <p>Sørstrandveien 28<br>4076 VASSØY</p>
+          <p style="margin-top:0.75rem;"><a href="mailto:vassoy.il@gmail.com" style="color:rgba(255,255,255,0.75);">vassoy.il@gmail.com</a></p>
+        </address>
+      </div>
+      <div>
+        <h3>Snarveier</h3>
+        <ul>
+          <li><a href="index.html">Hjemside</a></li>
+          <li><a href="spinning.html">Om spinning</a></li>
+          <li><a href="leie.html">Leie av lokale</a></li>
+          <li><a href="diskgolf.html">Disc Golf</a></li>
+          <li><a href="backyard.html">Backyard Ultra</a></li>
+        </ul>
+        <div style="margin-top:2rem;">
+          <p class="footer-label">Styreleder:</p>
+          <p style="color:rgba(255,255,255,0.9);font-weight:500;">Ole Jacob Johannessen</p>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bunn">
+      <p>&copy; 2026 Vassøy Idrettslag. Alle rettigheter reservert.</p>
+      <p>Stiftet 1973 &nbsp;·&nbsp; Utviklet av <a href="https://fjordogfest.no" target="_blank" rel="noreferrer" style="color:rgba(255,255,255,0.5);text-decoration:underline;">Simonsen Fjord &amp; Fest</a></p>
+    </div>
+  </div>
+</footer>
+
+<script src="nav.js"></script>
+<script>
+const STORAGE_SESSIONS = 'vassoy_spinning_sessions';
+const STORAGE_BOOKINGS = 'vassoy_spinning_bookings';
+let valgtSessionId = null;
+
+const DAGER_NO = ['Søndag','Mandag','Tirsdag','Onsdag','Torsdag','Fredag','Lørdag'];
+const MÅNEDER_NO = ['januar','februar','mars','april','mai','juni','juli','august','september','oktober','november','desember'];
+
+function formaterDato(datoStr) {
+  const d = new Date(datoStr + 'T12:00:00');
+  return `${DAGER_NO[d.getDay()]} ${d.getDate()}. ${MÅNEDER_NO[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function ukeNummer(datoStr) {
+  const d = new Date(datoStr + 'T12:00:00');
+  const startOfYear = new Date(d.getFullYear(), 0, 1);
+  const diff = d - startOfYear;
+  const oneWeek = 1000 * 60 * 60 * 24 * 7;
+  return Math.ceil((diff / oneWeek) + startOfYear.getDay() / 7);
+}
+
+function getSessions() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_SESSIONS)) || []; } catch { return []; }
+}
+
+function getBookings() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_BOOKINGS)) || []; } catch { return []; }
+}
+
+function antallBookinger(sessionId) {
+  return getBookings().filter(b => b.sessionId === sessionId).length;
+}
+
+function oppdaterPris() {
+  const erMedlem = document.querySelector('input[name="medlem"]:checked').value === 'ja';
+  document.getElementById('pris-knapp').textContent = erMedlem ? '50 kr' : '100 kr';
+}
+
+function velgSession(id) {
+  valgtSessionId = id;
+  const sessions = getSessions();
+  const s = sessions.find(x => x.id === id);
+  if (!s) return;
+
+  document.querySelectorAll('.time-kort').forEach(k => k.classList.remove('valgt'));
+  const kort = document.getElementById('kort-' + id);
+  if (kort) kort.classList.add('valgt');
+
+  document.getElementById('valgt-info').textContent = `${formaterDato(s.dato)} kl ${s.tid}`;
+  document.getElementById('booking-panel').classList.add('synlig');
+  document.getElementById('bekreftelse').classList.remove('synlig');
+  document.getElementById('feil-melding').style.display = 'none';
+  document.getElementById('navn').value = '';
+  document.getElementById('telefon').value = '';
+  document.getElementById('booking-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function lukkBooking() {
+  valgtSessionId = null;
+  document.getElementById('booking-panel').classList.remove('synlig');
+  document.querySelectorAll('.time-kort').forEach(k => k.classList.remove('valgt'));
+}
+
+function sendBestilling() {
+  const navn = document.getElementById('navn').value.trim();
+  const telefon = document.getElementById('telefon').value.trim();
+  const erMedlem = document.querySelector('input[name="medlem"]:checked').value === 'ja';
+  const feil = document.getElementById('feil-melding');
+
+  if (!navn) { feil.textContent = 'Vennligst fyll inn navn.'; feil.style.display = 'block'; return; }
+  if (!telefon || !/^\d{8}$/.test(telefon.replace(/\s/g, ''))) { feil.textContent = 'Vennligst fyll inn et gyldig 8-sifret telefonnummer.'; feil.style.display = 'block'; return; }
+
+  const sessions = getSessions();
+  const s = sessions.find(x => x.id === valgtSessionId);
+  if (!s) return;
+
+  const brukt = antallBookinger(valgtSessionId);
+  if (brukt >= s.kapasitet) { feil.textContent = 'Beklager – denne timen er nå full.'; feil.style.display = 'block'; return; }
+
+  const booking = {
+    id: 'book_' + Date.now(),
+    sessionId: valgtSessionId,
+    dato: s.dato,
+    tid: s.tid,
+    navn,
+    telefon: telefon.replace(/\s/g, ''),
+    erMedlem,
+    pris: erMedlem ? 50 : 100,
+    betalt: false,
+    timestamp: new Date().toISOString()
+  };
+
+  const bookings = getBookings();
+  bookings.push(booking);
+  localStorage.setItem(STORAGE_BOOKINGS, JSON.stringify(bookings));
+
+  document.getElementById('booking-panel').classList.remove('synlig');
+  const bekr = document.getElementById('bekreftelse');
+  bekr.classList.add('synlig');
+  document.getElementById('bekr-info').textContent = `${formaterDato(s.dato)} kl ${s.tid} – ${erMedlem ? '50' : '100'} kr`;
+  bekr.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  valgtSessionId = null;
+  renderTimer();
+}
+
+function nyBestilling() {
+  document.getElementById('bekreftelse').classList.remove('synlig');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderTimer() {
+  const container = document.getElementById('timer-liste');
+  const idag = new Date();
+  idag.setHours(0, 0, 0, 0);
+
+  const sessions = getSessions()
+    .filter(s => s.aktiv && new Date(s.dato + 'T23:59:59') >= idag)
+    .sort((a, b) => (a.dato + a.tid).localeCompare(b.dato + b.tid));
+
+  if (sessions.length === 0) {
+    container.innerHTML = `
+      <div class="ingen-timer">
+        <svg width="48" height="48" fill="none" stroke="var(--grå)" stroke-width="1.5" viewBox="0 0 24 24" style="margin:0 auto 1rem;display:block;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <p style="font-size:1.1rem;font-weight:600;margin-bottom:0.5rem;">Ingen ledige timer akkurat nå</p>
+        <p>Nye timer legges ut ukentlig. Sjekk tilbake snart!</p>
+      </div>`;
+    return;
+  }
+
+  let html = '';
+  let sisteUke = null;
+
+  sessions.forEach(s => {
+    const uke = ukeNummer(s.dato);
+    if (uke !== sisteUke) {
+      html += `<div class="uke-label">Uke ${uke}</div>`;
+      sisteUke = uke;
+    }
+
+    const brukt = antallBookinger(s.id);
+    const ledig = s.kapasitet - brukt;
+    const prosent = Math.round((brukt / s.kapasitet) * 100);
+    const erFull = ledig <= 0;
+    const erLav = ledig <= 3 && !erFull;
+    const erValgt = valgtSessionId === s.id;
+
+    let badgeHTML = erFull
+      ? '<span class="badge badge-rød">Fullt</span>'
+      : erLav
+        ? `<span class="badge badge-gul">${ledig} plass${ledig === 1 ? '' : 'er'} igjen</span>`
+        : `<span class="badge badge-grønn">${ledig} plasser igjen</span>`;
+
+    let barKlasse = erFull ? 'full' : erLav ? 'lav' : '';
+
+    html += `
+      <div class="time-kort ${erFull ? 'full' : ''} ${erValgt ? 'valgt' : ''}" id="kort-${s.id}"
+           onclick="${erFull ? '' : `velgSession('${s.id}')`}" style="margin-bottom:1rem;">
+        <div style="display:flex;align-items:center;gap:1.5rem;padding:1.25rem 1.5rem;flex-wrap:wrap;">
+          <div style="width:56px;height:56px;background:var(--grønn-lys);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;">
+            <span style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:var(--grønn);letter-spacing:0.06em;">${new Date(s.dato + 'T12:00:00').toLocaleString('nb', {month:'short'}).toUpperCase()}</span>
+            <span style="font-size:1.5rem;font-weight:800;color:var(--grønn);line-height:1.1;">${new Date(s.dato + 'T12:00:00').getDate()}</span>
+          </div>
+          <div style="flex:1;min-width:140px;">
+            <p style="font-weight:700;font-size:1.05rem;margin-bottom:0.15rem;">${formaterDato(s.dato)}</p>
+            <p style="color:var(--grå);font-size:0.95rem;">kl ${s.tid} &nbsp;·&nbsp; ca. 55 min</p>
+            <div class="plass-bar"><div class="plass-fill ${barKlasse}" style="width:${prosent}%;"></div></div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.5rem;flex-shrink:0;">
+            ${badgeHTML}
+            ${erFull
+              ? '<span style="color:var(--grå);font-size:0.9rem;font-weight:500;">Fullt</span>'
+              : '<span style="color:var(--grønn);font-weight:700;font-size:0.95rem;display:flex;align-items:center;gap:0.3rem;">Velg →</span>'}
+          </div>
+        </div>
+      </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+renderTimer();
+</script>
+</body>
+</html>
