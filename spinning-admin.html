@@ -287,7 +287,7 @@
 </div>
 
 <script>
-const PASSORD = 'VassoyIL25';
+const PASSORD = 'Emmcri75';
 const API_BASE = 'https://vassoy-il.replit.app/api';
 const STORAGE_SESSIONS = 'vassoy_spinning_sessions';
 const STORAGE_BOOKINGS = 'vassoy_spinning_bookings';
@@ -380,7 +380,7 @@ async function oppdaterStatistikk() {
 async function leggTilTime() {
   const dato = document.getElementById('ny-dato').value;
   const tid = document.getElementById('ny-tid').value;
-  const kap = parseInt(document.getElementById('ny-kapasitet').value) || 20;
+  const kap = parseInt(document.getElementById('ny-kapasitet').value) || 15;
   const instructor = document.getElementById('ny-instructor').value || null;
 
   if (!dato) { alert('Velg en dato.'); return; }
@@ -413,7 +413,7 @@ async function leggTilUke() {
       for (const tid of ['09:00', '18:30']) {
         if (!sessions.find(s => s.dato === datoStr && s.tid === tid)) {
           const id = 'sess-' + Date.now() + '-' + tid.replace(':', '');
-          await apiSession('POST', null, { id, dato: datoStr, tid, kapasitet: 20 });
+          await apiSession('POST', null, { id, dato: datoStr, tid, kapasitet: 15 });
           lagt.push(`${formaterDato(datoStr)} kl ${tid}`);
           await new Promise(r => setTimeout(r, 5)); // unngå duplikat-ID
         }
@@ -455,7 +455,7 @@ async function slettSession(id) {
 }
 
 async function oppdaterKapasitet(id, nyKap) {
-  await apiSession('PATCH', id, { kapasitet: parseInt(nyKap) || 20 });
+  await apiSession('PATCH', id, { kapasitet: parseInt(nyKap) || 15 });
   await oppdaterStatistikk();
 }
 
