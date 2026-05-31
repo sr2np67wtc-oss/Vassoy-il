@@ -218,6 +218,21 @@
       <button class="fane-btn" id="fane-bestillinger" onclick="byttFane('bestillinger')">Bestillinger</button>
     </div>
 
+    <!-- MELDING TIL BESØKENDE -->
+    <div style="background:#fff;border-radius:16px;border:1.5px solid var(--kant);padding:1.5rem;margin-bottom:1.5rem;">
+      <h3 style="font-size:1rem;font-weight:700;color:var(--grønn-mørk);margin-bottom:0.25rem;display:flex;align-items:center;gap:0.5rem;">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Melding til besøkende
+      </h3>
+      <p style="font-size:0.82rem;color:var(--grå);margin-bottom:1rem;">Skriv en melding som vises øverst på bookingsiden. La feltet stå tomt for å fjerne meldingen.</p>
+      <div id="banner-aktiv-visning" style="display:none;background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;padding:0.6rem 0.9rem;margin-bottom:0.75rem;font-size:0.85rem;color:#92400e;font-weight:600;"></div>
+      <textarea id="banner-input" rows="2" placeholder="F.eks: Sommerferie – ingen timer i uke 28 og 29." style="width:100%;border:1.5px solid var(--kant);border-radius:10px;padding:0.6rem 0.9rem;font-size:0.9rem;font-family:inherit;resize:vertical;box-sizing:border-box;margin-bottom:0.75rem;"></textarea>
+      <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+        <button onclick="publiserBanner()" class="btn btn-primær" style="padding:0.45rem 1.25rem;font-size:0.85rem;">Publiser melding</button>
+        <button onclick="fjernBanner()" style="padding:0.45rem 1.25rem;font-size:0.85rem;border:1.5px solid var(--kant);border-radius:8px;background:#fff;cursor:pointer;color:var(--grå);">Fjern melding</button>
+      </div>
+    </div>
+
     <!-- FANE: TIMEPLAN -->
     <div id="panel-timeplan">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;">
@@ -639,10 +654,58 @@ function visAlert(fane, melding, type) {
   setTimeout(() => el.classList.remove('synlig'), 4000);
 }
 
+// --- BANNER ---
+async function lastInnBanner() {
+  try {
+    const res = await fetch(API_BASE + '/settings/spinning-banner');
+    const data = await res.json();
+    const visning = document.getElementById('banner-aktiv-visning');
+    const input = document.getElementById('banner-input');
+    if (data.value) {
+      visning.style.display = 'block';
+      visning.textContent = '📢 Aktiv melding: ' + data.value;
+      input.value = data.value;
+    } else {
+      visning.style.display = 'none';
+      input.value = '';
+    }
+  } catch (e) {}
+}
+
+async function publiserBanner() {
+  const tekst = document.getElementById('banner-input').value.trim();
+  if (!tekst) { fjernBanner(); return; }
+  const res = await fetch(API_BASE + '/settings/spinning-banner', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Admin-Password': PASSORD },
+    body: JSON.stringify({ value: tekst })
+  });
+  if (res.ok) {
+    await lastInnBanner();
+    visAlert('timeplan', 'Melding publisert!', 'suksess');
+  } else {
+    visAlert('timeplan', 'Feil ved publisering.', 'feil');
+  }
+}
+
+async function fjernBanner() {
+  const res = await fetch(API_BASE + '/settings/spinning-banner', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Admin-Password': PASSORD },
+    body: JSON.stringify({ value: '' })
+  });
+  if (res.ok) {
+    document.getElementById('banner-input').value = '';
+    document.getElementById('banner-aktiv-visning').style.display = 'none';
+    visAlert('timeplan', 'Melding fjernet.', 'suksess');
+  }
+}
+
 // --- INIT ---
 async function renderAlt() {
   await renderSessioner();
   await oppdaterStatistikk();
+  await lastInnBanner();
 }
 
 // Auto-login fra session

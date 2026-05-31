@@ -156,6 +156,10 @@
 <!-- TIMER -->
 <section class="seksjon" style="background: var(--grå-lys); min-height: 60vh;">
   <div class="container" style="max-width: 800px;">
+    <div id="banner-melding" style="display:none;background:#fef3c7;border:1.5px solid #f59e0b;border-radius:14px;padding:1rem 1.25rem;margin-bottom:1.5rem;display:flex;align-items:flex-start;gap:0.75rem;">
+      <svg width="20" height="20" fill="none" stroke="#d97706" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:0.1rem;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <p id="banner-tekst" style="margin:0;color:#92400e;font-weight:600;font-size:0.95rem;line-height:1.5;"></p>
+    </div>
     <div id="timer-liste"></div>
 
     <!-- BOOKING PANEL -->
@@ -512,6 +516,18 @@ async function renderTimer() {
   container.innerHTML = html;
 }
 
+async function lastInnBanner() {
+  try {
+    const res = await fetch(API_BASE + '/settings/spinning-banner');
+    const data = await res.json();
+    if (data.value) {
+      document.getElementById('banner-tekst').textContent = data.value;
+      document.getElementById('banner-melding').style.display = 'flex';
+    }
+  } catch (e) {}
+}
+
+lastInnBanner();
 sjekkVippsRetur();
 renderTimer();
 </script>
