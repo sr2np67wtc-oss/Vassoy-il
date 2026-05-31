@@ -496,7 +496,7 @@ async function renderTimer() {
           </div>
           <div style="flex:1;min-width:140px;">
             <p style="font-weight:700;font-size:1.05rem;margin-bottom:0.15rem;">${formaterDato(s.dato)}</p>
-            <p style="color:var(--grå);font-size:0.95rem;">kl ${s.tid} &nbsp;·&nbsp; ca. 55 min</p>
+            <p style="color:var(--grå);font-size:0.95rem;">kl ${s.tid} &nbsp;·&nbsp; ca. 55 min${s.instructor ? ` &nbsp;·&nbsp; ${s.instructor}` : ''}</p>
             <div class="plass-bar"><div class="plass-fill ${barKlasse}" style="width:${prosent}%;"></div></div>
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.5rem;flex-shrink:0;">

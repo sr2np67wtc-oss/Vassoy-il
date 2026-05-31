@@ -249,9 +249,20 @@
               </select>
             </div>
           </div>
-          <div class="skjema-gruppe" style="margin-bottom:1rem;">
-            <label for="ny-kapasitet">Maks plasser</label>
-            <input type="number" id="ny-kapasitet" value="20" min="1" max="50" />
+          <div class="skjema-rad" style="margin-bottom:1rem;">
+            <div class="skjema-gruppe" style="margin-bottom:0;">
+              <label for="ny-kapasitet">Maks plasser</label>
+              <input type="number" id="ny-kapasitet" value="20" min="1" max="50" />
+            </div>
+            <div class="skjema-gruppe" style="margin-bottom:0;">
+              <label for="ny-instructor">Instruktør</label>
+              <select id="ny-instructor">
+                <option value="">— Ikke valgt —</option>
+                <option value="Anette">Anette</option>
+                <option value="Hans Olav">Hans Olav</option>
+                <option value="Anne">Anne</option>
+              </select>
+            </div>
           </div>
           <button onclick="leggTilTime()" class="btn btn-primær" style="padding:0.5rem 1.5rem;font-size:0.9rem;">Legg til time</button>
         </div>
@@ -276,7 +287,7 @@
 </div>
 
 <script>
-const PASSORD = 'Emmcri75';
+const PASSORD = 'VassoyIL25';
 const API_BASE = 'https://vassoy-il.replit.app/api';
 const STORAGE_SESSIONS = 'vassoy_spinning_sessions';
 const STORAGE_BOOKINGS = 'vassoy_spinning_bookings';
@@ -370,6 +381,7 @@ async function leggTilTime() {
   const dato = document.getElementById('ny-dato').value;
   const tid = document.getElementById('ny-tid').value;
   const kap = parseInt(document.getElementById('ny-kapasitet').value) || 20;
+  const instructor = document.getElementById('ny-instructor').value || null;
 
   if (!dato) { alert('Velg en dato.'); return; }
 
@@ -379,7 +391,7 @@ async function leggTilTime() {
   }
 
   const id = 'sess-' + Date.now();
-  const ok = await apiSession('POST', null, { id, dato, tid, kapasitet: kap });
+  const ok = await apiSession('POST', null, { id, dato, tid, kapasitet: kap, instructor });
   if (ok) {
     await renderSessioner();
     await oppdaterStatistikk();
@@ -447,6 +459,10 @@ async function oppdaterKapasitet(id, nyKap) {
   await oppdaterStatistikk();
 }
 
+async function oppdaterInstruktor(id, instructor) {
+  await apiSession('PATCH', id, { instructor: instructor || null });
+}
+
 // --- RENDER SESSIONS ---
 async function renderSessioner() {
   const container = document.getElementById('session-liste');
@@ -484,6 +500,15 @@ async function renderSessioner() {
         <div style="flex:1;">
           <p style="font-weight:700;font-size:1rem;margin-bottom:0.15rem;">${formaterDato(s.dato)} kl ${s.tid}</p>
           <p style="color:var(--grå);font-size:0.875rem;">${brukt} av ${s.kapasitet} plasser booket &nbsp;·&nbsp; ${ledig > 0 ? ledig + ' ledig' : '<span style="color:#ef4444;font-weight:600;">Fullt</span>'}</p>
+          <div style="margin-top:0.4rem;display:flex;align-items:center;gap:0.5rem;">
+            <svg width="13" height="13" fill="none" stroke="var(--grønn)" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <select onchange="oppdaterInstruktor('${s.id}', this.value)" style="font-size:0.8rem;border:1px solid var(--kant);border-radius:6px;padding:0.15rem 0.4rem;color:var(--tekst);background:#fff;">
+              <option value="" ${!s.instructor ? 'selected' : ''}>— Ikke valgt —</option>
+              <option value="Anette" ${s.instructor==='Anette' ? 'selected' : ''}>Anette</option>
+              <option value="Hans Olav" ${s.instructor==='Hans Olav' ? 'selected' : ''}>Hans Olav</option>
+              <option value="Anne" ${s.instructor==='Anne' ? 'selected' : ''}>Anne</option>
+            </select>
+          </div>
         </div>
         <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;" class="ingen-print">
           <label class="toggle-switch" title="${s.aktiv ? 'Aktiv' : 'Inaktiv'}">
