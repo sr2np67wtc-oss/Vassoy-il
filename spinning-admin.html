@@ -408,6 +408,90 @@
       </p>
 
       <div id="kamp-liste"></div>
+
+      <!-- BANERESERVASJONER -->
+      <div style="margin-top:3rem;">
+        <h2 style="font-size:1.5rem;font-weight:700;margin-bottom:1.5rem;">🏟️ Banereservasjoner (treninger m.m.)</h2>
+
+        <div class="session-rad" style="margin-bottom:2rem;background:#eff6ff;border-color:rgba(59,130,246,0.2);">
+          <div style="padding:1.25rem;">
+            <h3 style="font-size:1rem;font-weight:700;color:#1d4ed8;margin-bottom:1rem;">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:0.4rem;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Blokker banen manuelt
+            </h3>
+            <div class="skjema-rad" style="margin-bottom:1rem;">
+              <div class="skjema-gruppe" style="margin-bottom:0;">
+                <label for="res-dato">Dato</label>
+                <input type="date" id="res-dato" />
+              </div>
+              <div class="skjema-gruppe" style="margin-bottom:0;">
+                <label for="res-type">Type</label>
+                <select id="res-type">
+                  <option value="trening">Trening</option>
+                  <option value="annet">Annet</option>
+                </select>
+              </div>
+            </div>
+            <div class="skjema-rad" style="margin-bottom:1rem;">
+              <div class="skjema-gruppe" style="margin-bottom:0;">
+                <label for="res-fra">Fra kl</label>
+                <input type="time" id="res-fra" value="17:00" />
+              </div>
+              <div class="skjema-gruppe" style="margin-bottom:0;">
+                <label for="res-til">Til kl</label>
+                <input type="time" id="res-til" value="19:00" />
+              </div>
+            </div>
+            <div class="skjema-gruppe" style="margin-bottom:1rem;">
+              <label for="res-tittel">Beskrivelse</label>
+              <input type="text" id="res-tittel" placeholder="F.eks. Trening G16" />
+            </div>
+            <button onclick="leggTilReservasjon()" style="background:#3b82f6;color:#fff;border:none;border-radius:10px;padding:0.5rem 1.5rem;font-size:0.9rem;font-weight:700;cursor:pointer;">Blokker banen</button>
+          </div>
+        </div>
+
+        <div id="alert-reservasjon" class="alert alert-suksess"></div>
+        <div id="reservasjon-liste"></div>
+      </div>
+
+      <!-- LIGATABELL -->
+      <div style="margin-top:3rem;">
+        <h2 style="font-size:1.5rem;font-weight:700;margin-bottom:0.5rem;">📊 Ligatabell</h2>
+        <p style="font-size:0.82rem;color:var(--grå);margin-bottom:1.5rem;">Legg inn/oppdater tabellen manuelt. Hak av "Oss" for å fremheve Brodd-lag. Gruppenavn vises som overskrift på fotball-siden.</p>
+
+        <div style="background:#fff;border:1px solid var(--kant);border-radius:16px;padding:1.5rem;margin-bottom:1.5rem;">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;">
+            <div class="skjema-gruppe" style="margin-bottom:0;flex:1;min-width:200px;">
+              <label for="liga-gruppenavn">Gruppenavn / turnering</label>
+              <input type="text" id="liga-gruppenavn" placeholder="F.eks. G19 2. divisjon avd. 02" />
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;min-width:580px;" id="liga-rediger-tabell">
+              <thead>
+                <tr style="background:var(--grå-lys);">
+                  <th style="text-align:left;padding:0.5rem 0.6rem;font-size:0.75rem;font-weight:700;color:var(--grå);text-transform:uppercase;">Lag</th>
+                  <th style="text-align:center;padding:0.5rem 0.4rem;font-size:0.75rem;font-weight:700;color:var(--grå);" title="Spilt">S</th>
+                  <th style="text-align:center;padding:0.5rem 0.4rem;font-size:0.75rem;font-weight:700;color:var(--grå);" title="Vunnet">V</th>
+                  <th style="text-align:center;padding:0.5rem 0.4rem;font-size:0.75rem;font-weight:700;color:var(--grå);" title="Uavgjort">U</th>
+                  <th style="text-align:center;padding:0.5rem 0.4rem;font-size:0.75rem;font-weight:700;color:var(--grå);" title="Tapt">T</th>
+                  <th style="text-align:center;padding:0.5rem 0.4rem;font-size:0.75rem;font-weight:700;color:var(--grå);" title="Målforskjell">MF</th>
+                  <th style="text-align:center;padding:0.5rem 0.4rem;font-size:0.75rem;font-weight:700;color:var(--grå);" title="Poeng">P</th>
+                  <th style="text-align:center;padding:0.5rem 0.4rem;font-size:0.75rem;font-weight:700;color:var(--grå);" title="Fremhev">Oss</th>
+                  <th style="padding:0.5rem 0.4rem;"></th>
+                </tr>
+              </thead>
+              <tbody id="liga-rad-liste"></tbody>
+            </table>
+          </div>
+          <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-top:1rem;">
+            <button onclick="leggTilLagRad()" style="background:none;border:1.5px solid var(--kant);border-radius:8px;padding:0.4rem 1rem;font-size:0.85rem;cursor:pointer;font-weight:600;color:var(--tekst);">+ Legg til lag</button>
+            <button onclick="lagreLigatabell()" class="btn btn-primær" style="padding:0.45rem 1.5rem;font-size:0.85rem;">Lagre tabell</button>
+          </div>
+          <div id="alert-ligatabell" class="alert alert-suksess" style="margin-top:0.75rem;"></div>
+        </div>
+      </div>
+
     </div><!-- /seksjon-fotball -->
 
   </div>
@@ -486,7 +570,7 @@ function byttSeksjon(seksjon) {
     document.getElementById('seksjon-' + s).style.display = s === seksjon ? 'block' : 'none';
     document.getElementById('seksjon-btn-' + s).classList.toggle('aktiv', s === seksjon);
   });
-  if (seksjon === 'fotball') renderKamper();
+  if (seksjon === 'fotball') { renderKamper(); renderReservasjoner(); lastLigatabellAdmin(); }
 }
 
 // --- FANER ---
@@ -820,6 +904,137 @@ async function fjernBanner() {
     document.getElementById('banner-aktiv-visning').style.display = 'none';
     visAlert('timeplan', 'Melding fjernet.', 'suksess');
   }
+}
+
+// --- BANERESERVASJONER ---
+async function leggTilReservasjon() {
+  const dato = document.getElementById('res-dato').value;
+  const fraTid = document.getElementById('res-fra').value;
+  const tilTid = document.getElementById('res-til').value;
+  const tittel = document.getElementById('res-tittel').value.trim();
+  const type = document.getElementById('res-type').value;
+
+  if (!dato) { visAlert('reservasjon', 'Velg en dato.', 'feil'); return; }
+  if (!tittel) { visAlert('reservasjon', 'Fyll inn beskrivelse.', 'feil'); return; }
+
+  const res = await fetch(API_BASE + '/bane-reservasjoner', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Admin-Password': PASSORD },
+    body: JSON.stringify({ dato, fraTid, tilTid, tittel, type })
+  });
+  if (res.ok) {
+    document.getElementById('res-dato').value = '';
+    document.getElementById('res-tittel').value = '';
+    visAlert('reservasjon', 'Reservasjon lagret!', 'suksess');
+    await renderReservasjoner();
+  } else {
+    visAlert('reservasjon', 'Feil ved lagring.', 'feil');
+  }
+}
+
+async function slettReservasjon(id) {
+  if (!confirm('Slett denne reservasjonen?')) return;
+  await fetch(API_BASE + '/bane-reservasjoner/' + id, {
+    method: 'DELETE',
+    headers: { 'X-Admin-Password': PASSORD }
+  });
+  await renderReservasjoner();
+}
+
+async function renderReservasjoner() {
+  const container = document.getElementById('reservasjon-liste');
+  try {
+    const res = await fetch(API_BASE + '/bane-reservasjoner', { headers: { 'X-Admin-Password': PASSORD } });
+    const rader = await res.json();
+    if (!rader.length) {
+      container.innerHTML = '<p style="color:var(--grå);font-size:0.88rem;padding:0.5rem 0;">Ingen manuelle reservasjoner lagt inn.</p>';
+      return;
+    }
+    const idag = new Date().toISOString().slice(0,10);
+    let html = '';
+    rader.forEach(r => {
+      const passert = r.dato < idag;
+      html += `<div class="kamp-rad" style="${passert ? 'opacity:0.5;' : ''}">
+        <div class="kamp-dato-boks" style="background:#eff6ff;">
+          <span style="color:#3b82f6;">${new Date(r.dato+'T12:00:00').toLocaleString('nb',{month:'short'}).toUpperCase()}</span>
+          <span style="color:#3b82f6;">${new Date(r.dato+'T12:00:00').getDate()}</span>
+        </div>
+        <div style="flex:1;">
+          <p style="font-weight:700;font-size:0.95rem;margin:0 0 0.1rem;">${r.tittel}</p>
+          <p style="color:var(--grå);font-size:0.8rem;margin:0;">${r.type} &nbsp;·&nbsp; kl ${r.fraTid}–${r.tilTid}</p>
+        </div>
+        <button onclick="slettReservasjon('${r.id}')" style="background:none;border:none;cursor:pointer;color:#ef4444;padding:0.25rem;" title="Slett">
+          <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+        </button>
+      </div>`;
+    });
+    container.innerHTML = html;
+  } catch(e) {
+    container.innerHTML = '<p style="color:#ef4444;font-size:0.88rem;">Kunne ikke laste reservasjoner.</p>';
+  }
+}
+
+// --- LIGATABELL ---
+function leggTilLagRad(lag='', sp=0, v=0, u=0, t=0, mf=0, p=0, fremhev=false) {
+  const tbody = document.getElementById('liga-rad-liste');
+  const rad = document.createElement('tr');
+  rad.style.borderTop = '1px solid var(--kant)';
+  rad.innerHTML = `
+    <td style="padding:0.4rem 0.4rem;">
+      <input type="text" value="${lag}" placeholder="Lagnavn" style="width:100%;border:1px solid var(--kant);border-radius:6px;padding:0.3rem 0.5rem;font-size:0.85rem;box-sizing:border-box;" />
+    </td>
+    ${['sp','v','u','t'].map(f => `<td style="padding:0.4rem 0.3rem;"><input type="number" value="${f==='sp'?sp:f==='v'?v:f==='u'?u:t}" min="0" style="width:46px;text-align:center;border:1px solid var(--kant);border-radius:6px;padding:0.3rem 0.3rem;font-size:0.85rem;" /></td>`).join('')}
+    <td style="padding:0.4rem 0.3rem;"><input type="number" value="${mf}" style="width:50px;text-align:center;border:1px solid var(--kant);border-radius:6px;padding:0.3rem 0.3rem;font-size:0.85rem;" /></td>
+    <td style="padding:0.4rem 0.3rem;"><input type="number" value="${p}" min="0" style="width:46px;text-align:center;border:1px solid var(--kant);border-radius:6px;padding:0.3rem 0.3rem;font-size:0.85rem;" /></td>
+    <td style="text-align:center;padding:0.4rem 0.3rem;"><input type="checkbox" ${fremhev ? 'checked' : ''} style="width:16px;height:16px;cursor:pointer;" /></td>
+    <td style="padding:0.4rem 0.3rem;">
+      <button onclick="this.closest('tr').remove()" style="background:none;border:none;cursor:pointer;color:#ef4444;padding:0.2rem;" title="Fjern">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </td>`;
+  tbody.appendChild(rad);
+}
+
+async function lagreLigatabell() {
+  const gruppe = document.getElementById('liga-gruppenavn').value.trim() || 'Ligatabell';
+  const rader = Array.from(document.querySelectorAll('#liga-rad-liste tr'));
+  const lag = rader.map(rad => {
+    const inputs = rad.querySelectorAll('input');
+    return {
+      gruppe,
+      lag: inputs[0].value.trim(),
+      sp: parseInt(inputs[1].value) || 0,
+      v: parseInt(inputs[2].value) || 0,
+      u: parseInt(inputs[3].value) || 0,
+      t: parseInt(inputs[4].value) || 0,
+      mf: parseInt(inputs[5].value) || 0,
+      p: parseInt(inputs[6].value) || 0,
+      fremhev: inputs[7].checked
+    };
+  }).filter(r => r.lag);
+
+  const res = await fetch(API_BASE + '/liga-tabell', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Admin-Password': PASSORD },
+    body: JSON.stringify({ lag })
+  });
+  if (res.ok) {
+    visAlert('ligatabell', 'Ligatabell lagret!', 'suksess');
+  } else {
+    visAlert('ligatabell', 'Feil ved lagring.', 'feil');
+  }
+}
+
+async function lastLigatabellAdmin() {
+  try {
+    const res = await fetch(API_BASE + '/liga-tabell');
+    const data = await res.json();
+    if (!data.length) return;
+    document.getElementById('liga-gruppenavn').value = data[0].gruppe || '';
+    const tbody = document.getElementById('liga-rad-liste');
+    tbody.innerHTML = '';
+    data.forEach(r => leggTilLagRad(r.lag, r.sp, r.v, r.u, r.t, r.mf, r.p, r.fremhev));
+  } catch(e) {}
 }
 
 // --- FOTBALL ---
