@@ -65,8 +65,46 @@
       <a href="leie.html" class="btn btn-sekundær btn-lg">Leie idrettslokale</a>
       <a href="https://www.minidrett.no" target="_blank" rel="noreferrer" class="btn btn-sekundær btn-lg">Bli medlem</a>
     </div>
+
+    <div id="fotball-widget" style="display:none;margin-top:2.5rem;max-width:680px;margin-left:auto;margin-right:auto;">
+      <p style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.7);margin-bottom:0.75rem;">
+        ⚽ Kommende kamper på Vassøy
+      </p>
+      <div id="fotball-kort-liste" style="display:flex;flex-direction:column;gap:0.5rem;"></div>
+    </div>
   </div>
 </section>
+
+<script>
+(async function() {
+  try {
+    const res = await fetch('https://vassoy-il.replit.app/api/fotball-kamper');
+    const kamper = await res.json();
+    if (!Array.isArray(kamper) || kamper.length === 0) return;
+    const dager = ['søndag','mandag','tirsdag','onsdag','torsdag','fredag','lørdag'];
+    const måneder = ['jan','feb','mar','apr','mai','jun','jul','aug','sep','okt','nov','des'];
+    const liste = document.getElementById('fotball-kort-liste');
+    kamper.slice(0, 3).forEach(k => {
+      const d = new Date(k.dato + 'T12:00:00');
+      const dag = dager[d.getDay()];
+      const dato = `${dag.charAt(0).toUpperCase()+dag.slice(1)} ${d.getDate()}. ${måneder[d.getMonth()]}`;
+      const kort = document.createElement('div');
+      kort.style.cssText = 'background:rgba(255,255,255,0.12);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:0.7rem 1.1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;text-align:left;';
+      kort.innerHTML = `
+        <div>
+          <p style="font-weight:700;color:#fff;font-size:0.95rem;margin:0 0 0.1rem;">${k.lag}</p>
+          <p style="color:rgba(255,255,255,0.7);font-size:0.8rem;margin:0;">${k.turnering}</p>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <p style="font-weight:700;color:#fff;font-size:0.9rem;margin:0;">${dato}</p>
+          <p style="color:rgba(255,255,255,0.7);font-size:0.8rem;margin:0;">kl ${k.tid}</p>
+        </div>`;
+      liste.appendChild(kort);
+    });
+    document.getElementById('fotball-widget').style.display = 'block';
+  } catch(e) {}
+})();
+</script>
 
 
 <!-- ===================== OM OSS ===================== -->
