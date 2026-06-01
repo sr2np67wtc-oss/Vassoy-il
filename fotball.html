@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fotball – Vassøy IL</title>
-  <meta name="description" content="Fotball på Vassøy. Se kampprogram, baneoversikt og ligatabeller for lagene som spiller på Vassøy Arena." />
+  <meta name="description" content="Fotball på Vassøy. Se kampprogram, baneoversikt og ligatabeller for lagene som spiller på Vassøy Kunstgress." />
   <link rel="icon" type="image/png" sizes="32x32" href="bilder/logo.png">
   <link rel="apple-touch-icon" sizes="180x180" href="bilder/logo.png">
   <meta name="theme-color" content="#198553">
@@ -139,11 +139,11 @@
   </div>
   <div class="hero-innhold" style="padding-top:5rem;padding-bottom:3rem;">
     <div style="display:inline-flex;align-items:center;gap:0.5rem;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:999px;padding:0.35rem 1rem;margin-bottom:1.25rem;font-size:0.85rem;font-weight:600;color:#fff;">
-      ⚽ Vassøy Arena
+      ⚽ Vassøy Kunstgress
     </div>
     <h1 style="font-size:clamp(2.2rem,6vw,3.8rem);font-weight:800;margin-bottom:1rem;">Fotball på Vassøy</h1>
     <p style="font-size:1.1rem;font-weight:300;max-width:520px;margin:0 auto;opacity:0.9;">
-      Kampprogram, baneoversikt og ligatabeller for lagene som holder til på Vassøy Arena.
+      Kampprogram, baneoversikt og ligatabeller for lagene som holder til på Vassøy Kunstgress.
     </p>
   </div>
 </section>
@@ -161,7 +161,7 @@
           </div>
           <div>
             <h2 style="font-size:1.4rem;font-weight:700;margin:0;">Baneoversikt</h2>
-            <p style="font-size:0.82rem;color:var(--grå);margin:0;">Neste 4 uker</p>
+            <p style="font-size:0.82rem;color:var(--grå);margin:0;">Neste 3 uker</p>
           </div>
         </div>
         <div style="display:flex;gap:1.5rem;margin-bottom:1.5rem;flex-wrap:wrap;">
@@ -178,7 +178,7 @@
             <span style="width:8px;height:8px;border-radius:50%;background:#8b5cf6;display:inline-block;"></span> Annet
           </span>
         </div>
-        <div id="bane-kalender">
+        <div id="bane-kalender" style="max-height:520px;overflow-y:auto;padding-right:0.5rem;scrollbar-width:thin;scrollbar-color:var(--kant) transparent;">
           <div style="color:var(--grå);font-size:0.9rem;padding:1rem 0;">Laster baneoversikt…</div>
         </div>
       </div>
@@ -186,7 +186,7 @@
       <!-- HØYRE: Info om banen -->
       <div>
         <div style="background:var(--grønn-lys);border-radius:18px;padding:1.75rem;margin-bottom:1.5rem;">
-          <h3 style="font-size:1.1rem;font-weight:700;color:var(--grønn-mørk);margin-bottom:1rem;">🏟️ Om Vassøy Arena</h3>
+          <h3 style="font-size:1.1rem;font-weight:700;color:var(--grønn-mørk);margin-bottom:1rem;">🏟️ Om Vassøy Kunstgress</h3>
           <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:0.75rem;">
             <li style="display:flex;gap:0.75rem;align-items:flex-start;">
               <svg width="16" height="16" fill="none" stroke="var(--grønn)" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:2px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -204,7 +204,7 @@
         </div>
         <div style="background:#fff;border-radius:18px;border:1px solid var(--kant);padding:1.75rem;">
           <h3 style="font-size:1rem;font-weight:700;margin-bottom:0.5rem;">Vil du leie banen?</h3>
-          <p style="font-size:0.88rem;color:var(--grå);margin-bottom:1.25rem;">Ta kontakt med oss for å booke Vassøy Arena til kamp eller trening.</p>
+          <p style="font-size:0.88rem;color:var(--grå);margin-bottom:1.25rem;">Ta kontakt med oss for å booke Vassøy Kunstgress til kamp eller trening.</p>
           <a href="mailto:vassoy.il@gmail.com" class="btn btn-primær" style="padding:0.5rem 1.25rem;font-size:0.88rem;">Send e-post</a>
         </div>
       </div>
@@ -296,7 +296,7 @@ function formaterDato(datoStr) {
 // ---------- BANEOVERSIKT ----------
 async function lastBaneKalender() {
   try {
-    const res = await fetch(API_BASE + '/bane-timeplan?dager=28');
+    const res = await fetch(API_BASE + '/bane-timeplan?dager=21');
     const dager = await res.json();
     const container = document.getElementById('bane-kalender');
 
@@ -388,66 +388,85 @@ async function lastKamper() {
 }
 
 // ---------- LIGATABELL ----------
+function byggTabellHTML(tabeller, kilde) {
+  if (!tabeller.length) {
+    return `<div class="ingen-tabell">
+      <p>Ingen ligatabell tilgjengelig</p>
+      <p>Prøv igjen senere, eller kontakt administrator.</p>
+    </div>`;
+  }
+  const grupper = {};
+  tabeller.forEach(r => {
+    const g = r.gruppe || 'Tabell';
+    if (!grupper[g]) grupper[g] = [];
+    grupper[g].push(r);
+  });
+  let html = '';
+  if (kilde === 'nifs') {
+    html += `<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1.5rem;">
+      <span style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;border-radius:999px;padding:0.2rem 0.75rem;font-size:0.75rem;font-weight:600;">
+        ✓ Automatisk hentet fra NIFS / fotball.no
+      </span>
+    </div>`;
+  }
+  Object.entries(grupper).forEach(([gruppeNavn, rader]) => {
+    html += `<div style="margin-bottom:2.5rem;">
+      <h3 style="font-size:1rem;font-weight:700;color:var(--grønn-mørk);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+        ⚽ ${gruppeNavn}
+      </h3>
+      <div style="background:#fff;border-radius:14px;border:1px solid var(--kant);overflow:hidden;">
+        <div style="overflow-x:auto;">
+          <table class="liga-tabell" style="min-width:520px;">
+            <thead><tr>
+              <th style="width:32px;">#</th>
+              <th>Lag</th>
+              <th class="sentrer" title="Spilt">S</th>
+              <th class="sentrer" title="Vunnet">V</th>
+              <th class="sentrer" title="Uavgjort">U</th>
+              <th class="sentrer" title="Tapt">T</th>
+              <th class="sentrer" title="Målforskjell">MF</th>
+              <th class="sentrer" title="Poeng">P</th>
+            </tr></thead>
+            <tbody>`;
+    rader.forEach((r, i) => {
+      const mf = (r.mf >= 0 ? '+' : '') + r.mf;
+      html += `<tr>
+        <td><span class="lag-plass">${i + 1}</span></td>
+        <td><span class="lag-navn-rad ${r.fremhev ? 'fremhev' : ''}">${r.lag}${r.fremhev ? ' ★' : ''}</span></td>
+        <td class="sentrer">${r.sp}</td>
+        <td class="sentrer">${r.v}</td>
+        <td class="sentrer">${r.u}</td>
+        <td class="sentrer">${r.t}</td>
+        <td class="sentrer">${mf}</td>
+        <td class="sentrer"><span class="lag-poeng">${r.p}</span></td>
+      </tr>`;
+    });
+    html += `</tbody></table></div></div></div>`;
+  });
+  return html;
+}
+
 async function lastLigatabell() {
+  const container = document.getElementById('liga-tabell-container');
+  container.innerHTML = '<div style="color:var(--grå);font-size:0.9rem;">Laster tabell…</div>';
   try {
+    // Try auto-fetched NIFS standings first
+    const nifsRes = await fetch(API_BASE + '/nifs-standings');
+    if (nifsRes.ok) {
+      const nifsData = await nifsRes.json();
+      if (nifsData.length) {
+        container.innerHTML = byggTabellHTML(nifsData, 'nifs');
+        return;
+      }
+    }
+  } catch(_) {}
+  try {
+    // Fall back to manual table
     const res = await fetch(API_BASE + '/liga-tabell');
     const tabeller = await res.json();
-    const container = document.getElementById('liga-tabell-container');
-
-    if (!tabeller.length) {
-      container.innerHTML = `<div class="ingen-tabell">
-        <p>Ingen ligatabell er lagt inn ennå</p>
-        <p>Tabellen oppdateres av administrator via admin-panelet.</p>
-      </div>`;
-      return;
-    }
-
-    const grupper = {};
-    tabeller.forEach(r => {
-      const g = r.gruppe || 'Tabell';
-      if (!grupper[g]) grupper[g] = [];
-      grupper[g].push(r);
-    });
-
-    let html = '';
-    Object.entries(grupper).forEach(([gruppeNavn, rader]) => {
-      html += `<div style="margin-bottom:2.5rem;">
-        <h3 style="font-size:1rem;font-weight:700;color:var(--grønn-mørk);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
-          ⚽ ${gruppeNavn}
-        </h3>
-        <div style="background:#fff;border-radius:14px;border:1px solid var(--kant);overflow:hidden;">
-          <div style="overflow-x:auto;">
-            <table class="liga-tabell" style="min-width:560px;">
-              <thead><tr>
-                <th style="width:36px;">#</th>
-                <th>Lag</th>
-                <th class="sentrer" title="Spilt">S</th>
-                <th class="sentrer" title="Vunnet">V</th>
-                <th class="sentrer" title="Uavgjort">U</th>
-                <th class="sentrer" title="Tapt">T</th>
-                <th class="sentrer" title="Målforskjell">MF</th>
-                <th class="sentrer" title="Poeng">P</th>
-              </tr></thead>
-              <tbody>`;
-      rader.forEach((r, i) => {
-        const mf = (r.mf >= 0 ? '+' : '') + r.mf;
-        const erFremhev = r.fremhev;
-        html += `<tr>
-          <td><span class="lag-plass">${i + 1}</span></td>
-          <td><span class="lag-navn-rad ${erFremhev ? 'fremhev' : ''}">${r.lag}${erFremhev ? ' ★' : ''}</span></td>
-          <td class="sentrer">${r.sp}</td>
-          <td class="sentrer">${r.v}</td>
-          <td class="sentrer">${r.u}</td>
-          <td class="sentrer">${r.t}</td>
-          <td class="sentrer">${mf}</td>
-          <td class="sentrer"><span class="lag-poeng">${r.p}</span></td>
-        </tr>`;
-      });
-      html += `</tbody></table></div></div></div>`;
-    });
-    container.innerHTML = html;
+    container.innerHTML = byggTabellHTML(tabeller, 'manuell');
   } catch(e) {
-    document.getElementById('liga-tabell-container').innerHTML = '<p style="color:#ef4444;font-size:0.9rem;">Kunne ikke laste ligatabell.</p>';
+    container.innerHTML = '<p style="color:#ef4444;font-size:0.9rem;">Kunne ikke laste ligatabell.</p>';
   }
 }
 
