@@ -161,7 +161,7 @@
           </div>
           <div>
             <h2 style="font-size:1.4rem;font-weight:700;margin:0;">Baneoversikt</h2>
-            <p style="font-size:0.82rem;color:var(--grå);margin:0;">Neste 3 uker</p>
+            <p style="font-size:0.82rem;color:var(--grå);margin:0;">Neste 4 uker</p>
           </div>
         </div>
         <div style="display:flex;gap:1.5rem;margin-bottom:1.5rem;flex-wrap:wrap;">
@@ -178,7 +178,7 @@
             <span style="width:8px;height:8px;border-radius:50%;background:#8b5cf6;display:inline-block;"></span> Annet
           </span>
         </div>
-        <div id="bane-kalender" style="max-height:520px;overflow-y:auto;padding-right:0.5rem;scrollbar-width:thin;scrollbar-color:var(--kant) transparent;">
+        <div id="bane-kalender" style="max-height:720px;overflow-y:auto;padding-right:0.5rem;scrollbar-width:thin;scrollbar-color:var(--kant) transparent;">
           <div style="color:var(--grå);font-size:0.9rem;padding:1rem 0;">Laster baneoversikt…</div>
         </div>
       </div>
@@ -282,7 +282,7 @@ function formaterDato(datoStr) {
 // ---------- BANEOVERSIKT ----------
 async function lastBaneKalender() {
   try {
-    const res = await fetch(API_BASE + '/bane-timeplan?dager=21');
+    const res = await fetch(API_BASE + '/bane-timeplan?dager=28');
     const dager = await res.json();
     const container = document.getElementById('bane-kalender');
 
