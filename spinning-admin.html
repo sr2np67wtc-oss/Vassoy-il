@@ -404,7 +404,7 @@
       </div>
 
       <p style="font-size:0.82rem;color:var(--grå);margin-bottom:1.25rem;">
-        Kamper hentet automatisk fra fotball.no er merket <span style="background:#f0f9ff;color:#0284c7;padding:0.1rem 0.5rem;border-radius:4px;font-size:0.75rem;font-weight:600;">fotball.no</span>. Manuelle kamper kan slettes.
+        Kamper fra fotball.no er merket <span style="background:#f0f9ff;color:#0284c7;padding:0.1rem 0.5rem;border-radius:4px;font-size:0.75rem;font-weight:600;">fotball.no</span>. Du kan avlyse dem (de forsvinner fra nettsiden), eller angre avlysningen. Manuelle kamper kan slettes.
       </p>
 
       <div id="kamp-liste"></div>
@@ -1363,6 +1363,28 @@ async function leggTilKamp() {
   }
 }
 
+async function avlysKamp(icalKey) {
+  if (!confirm('Merke denne kampen som avlyst? Den forsvinner fra nettsiden.')) return;
+  const res = await fetch(API_BASE + '/avlyste-kamper', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Admin-Password': PASSORD },
+    body: JSON.stringify({ icalKey })
+  });
+  if (res.ok) { visAlert('fotball', 'Kamp merket som avlyst.', 'suksess'); await renderKamper(); }
+  else visAlert('fotball', 'Noe gikk galt.', 'feil');
+}
+
+async function angreAvlysning(icalKey) {
+  if (!confirm('Gjenopprette denne kampen på nettsiden?')) return;
+  const res = await fetch(API_BASE + '/avlyste-kamper', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json', 'X-Admin-Password': PASSORD },
+    body: JSON.stringify({ icalKey })
+  });
+  if (res.ok) { visAlert('fotball', 'Avlysning angret – kampen vises igjen.', 'suksess'); await renderKamper(); }
+  else visAlert('fotball', 'Noe gikk galt.', 'feil');
+}
+
 async function slettKamp(id) {
   if (!confirm('Slett denne kampen?')) return;
   const res = await fetch(API_BASE + '/fotball-kamper/' + id, {
@@ -1387,26 +1409,30 @@ async function renderKamper() {
     let html = '';
     kamper.forEach(k => {
       const d = new Date(k.dato + 'T12:00:00');
-      const datoTekst = `${DAGER[d.getDay()]} ${d.getDate()}. ${MNED[d.getMonth()]}`;
       const idag = new Date().toISOString().slice(0,10);
       const passert = k.dato < idag;
+      const avlyst = k.avlyst === true;
       html += `
-      <div class="kamp-rad" style="${passert ? 'opacity:0.5;' : ''}">
-        <div class="kamp-dato-boks">
+      <div class="kamp-rad" style="${passert ? 'opacity:0.5;' : ''}${avlyst ? 'background:#fff7f7;border-left:3px solid #ef4444;' : ''}">
+        <div class="kamp-dato-boks" style="${avlyst ? 'background:#fee2e2;' : ''}">
           <span>${MNED[d.getMonth()].toUpperCase()}</span>
           <span>${d.getDate()}</span>
         </div>
         <div style="flex:1;">
-          <p style="font-weight:700;font-size:0.95rem;margin:0 0 0.1rem;">${k.lag}</p>
-          <p style="color:var(--grå);font-size:0.8rem;margin:0;">${k.turnering || '—'} &nbsp;·&nbsp; kl ${k.tid}</p>
+          <p style="font-weight:700;font-size:0.95rem;margin:0 0 0.1rem;${avlyst ? 'text-decoration:line-through;color:#9ca3af;' : ''}">${k.lag}</p>
+          <p style="color:var(--grå);font-size:0.8rem;margin:0;">${k.turnering || '—'} &nbsp;·&nbsp; kl ${k.tid}${avlyst ? ' &nbsp;<span style="color:#ef4444;font-weight:600;">AVLYST</span>' : ''}</p>
         </div>
-        <div style="display:flex;align-items:center;gap:0.75rem;">
+        <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;justify-content:flex-end;">
           ${k.manuell
             ? `<span style="background:#f3f4f6;color:var(--grå);padding:0.15rem 0.5rem;border-radius:4px;font-size:0.72rem;font-weight:600;">manuell</span>
                <button onclick="slettKamp('${k.id}')" style="background:none;border:none;cursor:pointer;color:#ef4444;padding:0.25rem;" title="Slett">
                  <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
                </button>`
-            : `<span style="background:#f0f9ff;color:#0284c7;padding:0.15rem 0.5rem;border-radius:4px;font-size:0.72rem;font-weight:600;">fotball.no</span>`
+            : avlyst
+              ? `<span style="background:#fee2e2;color:#ef4444;padding:0.15rem 0.5rem;border-radius:4px;font-size:0.72rem;font-weight:600;">avlyst</span>
+                 <button onclick="angreAvlysning('${k.icalKey}')" style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:6px;cursor:pointer;color:#16a34a;padding:0.2rem 0.6rem;font-size:0.75rem;font-weight:600;" title="Angre avlysning">↩ Angre</button>`
+              : `<span style="background:#f0f9ff;color:#0284c7;padding:0.15rem 0.5rem;border-radius:4px;font-size:0.72rem;font-weight:600;">fotball.no</span>
+                 <button onclick="avlysKamp('${k.icalKey}')" style="background:#fff7ed;border:1.5px solid #fdba74;border-radius:6px;cursor:pointer;color:#ea580c;padding:0.2rem 0.6rem;font-size:0.75rem;font-weight:600;" title="Merk som avlyst">✕ Avlys</button>`
           }
         </div>
       </div>`;
