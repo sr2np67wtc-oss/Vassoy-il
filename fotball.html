@@ -92,6 +92,32 @@
     }
     .ingen-tabell p:first-child { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; }
     .ingen-tabell p { font-size: 0.85rem; }
+
+    /* Fotball-spesifikk grid – overstyrer inline, kollapser riktig på mobil */
+    .fotball-bane-grid {
+      display: grid;
+      grid-template-columns: 3fr 2fr;
+      gap: 3rem;
+    }
+
+    @media (max-width: 650px) {
+      /* Grid til én kolonne */
+      .fotball-bane-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+
+      /* Kompakt kalender-dato */
+      .bane-dag-dato { width: 52px; }
+      .bane-dag-dato .dag-tall { font-size: 1.1rem; }
+      .bane-dag { gap: 0.5rem; padding: 0.65rem 0; }
+      #bane-kalender { max-height: 380px; }
+
+      /* Ligatabell – tettere og skjul MF */
+      .liga-tabell td, .liga-tabell th { padding: 0.45rem 0.4rem; font-size: 0.78rem; }
+      .skjul-mobil { display: none; }
+      .liga-tabell table { min-width: unset !important; }
+
+      /* Seksjonspadding */
+      .seksjon { padding: 2rem 0; }
+    }
   </style>
 </head>
 <body>
@@ -151,7 +177,7 @@
 <!-- ===================== BANEOVERSIKT ===================== -->
 <section class="seksjon" id="bane">
   <div class="container">
-    <div class="grid-2-3" style="grid-template-columns:3fr 2fr;gap:3rem;">
+    <div class="fotball-bane-grid">
 
       <!-- VENSTRE: Bane-kalender -->
       <div>
@@ -405,7 +431,7 @@ function byggTabellHTML(tabeller, kilde) {
               <th class="sentrer" title="Vunnet">V</th>
               <th class="sentrer" title="Uavgjort">U</th>
               <th class="sentrer" title="Tapt">T</th>
-              <th class="sentrer" title="Målforskjell">MF</th>
+              <th class="sentrer skjul-mobil" title="Målforskjell">MF</th>
               <th class="sentrer" title="Poeng">P</th>
             </tr></thead>
             <tbody>`;
@@ -418,7 +444,7 @@ function byggTabellHTML(tabeller, kilde) {
         <td class="sentrer">${r.v}</td>
         <td class="sentrer">${r.u}</td>
         <td class="sentrer">${r.t}</td>
-        <td class="sentrer">${mf}</td>
+        <td class="sentrer skjul-mobil">${mf}</td>
         <td class="sentrer"><span class="lag-poeng">${r.p}</span></td>
       </tr>`;
     });
