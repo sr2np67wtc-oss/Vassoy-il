@@ -413,11 +413,18 @@
       <div style="margin-top:3rem;">
         <h2 style="font-size:1.5rem;font-weight:700;margin-bottom:1.5rem;">🏟️ Banereservasjoner (treninger m.m.)</h2>
 
-        <div class="session-rad" style="margin-bottom:2rem;background:#eff6ff;border-color:rgba(59,130,246,0.2);">
+        <!-- TABS -->
+        <div style="display:flex;gap:0.5rem;margin-bottom:1.5rem;">
+          <button id="tab-enkelt-btn" onclick="byttResTab('enkelt')" style="padding:0.45rem 1.1rem;border-radius:8px;font-size:0.88rem;font-weight:700;border:none;background:#3b82f6;color:#fff;cursor:pointer;">Enkelt dato</button>
+          <button id="tab-gjentakende-btn" onclick="byttResTab('gjentakende')" style="padding:0.45rem 1.1rem;border-radius:8px;font-size:0.88rem;font-weight:700;border:2px solid #3b82f6;background:#fff;color:#3b82f6;cursor:pointer;">🔁 Gjentakende</button>
+        </div>
+
+        <!-- ENKELT DATO -->
+        <div id="tab-enkelt" class="session-rad" style="margin-bottom:2rem;background:#eff6ff;border-color:rgba(59,130,246,0.2);">
           <div style="padding:1.25rem;">
             <h3 style="font-size:1rem;font-weight:700;color:#1d4ed8;margin-bottom:1rem;">
               <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:0.4rem;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Blokker banen manuelt
+              Blokker én dato
             </h3>
             <div class="skjema-rad" style="margin-bottom:1rem;">
               <div class="skjema-gruppe" style="margin-bottom:0;">
@@ -450,14 +457,120 @@
           </div>
         </div>
 
+        <!-- GJENTAKENDE -->
+        <div id="tab-gjentakende" class="session-rad" style="display:none;margin-bottom:2rem;background:#f0fdf4;border-color:rgba(26,107,60,0.2);">
+          <div style="padding:1.25rem;">
+            <h3 style="font-size:1rem;font-weight:700;color:#1a6b3c;margin-bottom:1.25rem;">
+              🔁 Gjentakende treningstid
+            </h3>
+
+            <!-- Ukedager -->
+            <div style="margin-bottom:1rem;">
+              <label style="font-size:0.85rem;font-weight:700;color:#374151;display:block;margin-bottom:0.6rem;">Ukedager</label>
+              <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+                <label id="dag-0-lbl" style="display:flex;align-items:center;gap:0.3rem;padding:0.35rem 0.75rem;border-radius:8px;border:2px solid #d1fae5;background:#fff;cursor:pointer;font-size:0.85rem;font-weight:600;transition:all 0.15s;">
+                  <input type="checkbox" id="dag-0" value="1" onchange="oppdaterForhandsvis()" style="display:none;"> Man
+                </label>
+                <label id="dag-1-lbl" style="display:flex;align-items:center;gap:0.3rem;padding:0.35rem 0.75rem;border-radius:8px;border:2px solid #d1fae5;background:#fff;cursor:pointer;font-size:0.85rem;font-weight:600;transition:all 0.15s;">
+                  <input type="checkbox" id="dag-1" value="2" onchange="oppdaterForhandsvis()" style="display:none;"> Tir
+                </label>
+                <label id="dag-2-lbl" style="display:flex;align-items:center;gap:0.3rem;padding:0.35rem 0.75rem;border-radius:8px;border:2px solid #d1fae5;background:#fff;cursor:pointer;font-size:0.85rem;font-weight:600;transition:all 0.15s;">
+                  <input type="checkbox" id="dag-2" value="3" onchange="oppdaterForhandsvis()" style="display:none;"> Ons
+                </label>
+                <label id="dag-3-lbl" style="display:flex;align-items:center;gap:0.3rem;padding:0.35rem 0.75rem;border-radius:8px;border:2px solid #d1fae5;background:#fff;cursor:pointer;font-size:0.85rem;font-weight:600;transition:all 0.15s;">
+                  <input type="checkbox" id="dag-3" value="4" onchange="oppdaterForhandsvis()" style="display:none;"> Tor
+                </label>
+                <label id="dag-4-lbl" style="display:flex;align-items:center;gap:0.3rem;padding:0.35rem 0.75rem;border-radius:8px;border:2px solid #d1fae5;background:#fff;cursor:pointer;font-size:0.85rem;font-weight:600;transition:all 0.15s;">
+                  <input type="checkbox" id="dag-4" value="5" onchange="oppdaterForhandsvis()" style="display:none;"> Fre
+                </label>
+                <label id="dag-5-lbl" style="display:flex;align-items:center;gap:0.3rem;padding:0.35rem 0.75rem;border-radius:8px;border:2px solid #d1fae5;background:#fff;cursor:pointer;font-size:0.85rem;font-weight:600;transition:all 0.15s;">
+                  <input type="checkbox" id="dag-5" value="6" onchange="oppdaterForhandsvis()" style="display:none;"> Lør
+                </label>
+                <label id="dag-6-lbl" style="display:flex;align-items:center;gap:0.3rem;padding:0.35rem 0.75rem;border-radius:8px;border:2px solid #d1fae5;background:#fff;cursor:pointer;font-size:0.85rem;font-weight:600;transition:all 0.15s;">
+                  <input type="checkbox" id="dag-6" value="0" onchange="oppdaterForhandsvis()" style="display:none;"> Søn
+                </label>
+              </div>
+            </div>
+
+            <div class="skjema-rad" style="margin-bottom:1rem;">
+              <div class="skjema-gruppe" style="margin-bottom:0;">
+                <label for="gjen-fra-dato">Fra dato</label>
+                <input type="date" id="gjen-fra-dato" onchange="oppdaterForhandsvis()" />
+              </div>
+              <div class="skjema-gruppe" style="margin-bottom:0;">
+                <label for="gjen-uker">Antall uker</label>
+                <select id="gjen-uker" onchange="oppdaterForhandsvis()">
+                  <option value="1">1 uke</option>
+                  <option value="2">2 uker</option>
+                  <option value="3">3 uker</option>
+                  <option value="4" selected>4 uker</option>
+                  <option value="6">6 uker</option>
+                  <option value="8">8 uker</option>
+                  <option value="10">10 uker</option>
+                  <option value="12">12 uker</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="skjema-rad" style="margin-bottom:1rem;">
+              <div class="skjema-gruppe" style="margin-bottom:0;">
+                <label for="gjen-fra-tid">Fra kl</label>
+                <input type="time" id="gjen-fra-tid" value="17:00" onchange="oppdaterForhandsvis()" />
+              </div>
+              <div class="skjema-gruppe" style="margin-bottom:0;">
+                <label for="gjen-til-tid">Til kl</label>
+                <input type="time" id="gjen-til-tid" value="19:00" onchange="oppdaterForhandsvis()" />
+              </div>
+            </div>
+
+            <div class="skjema-rad" style="margin-bottom:1.25rem;">
+              <div class="skjema-gruppe" style="margin-bottom:0;">
+                <label for="gjen-tittel">Beskrivelse</label>
+                <input type="text" id="gjen-tittel" placeholder="F.eks. Trening G16" />
+              </div>
+              <div class="skjema-gruppe" style="margin-bottom:0;">
+                <label for="gjen-type">Type</label>
+                <select id="gjen-type">
+                  <option value="trening">Trening</option>
+                  <option value="annet">Annet</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Forhåndsvisning -->
+            <div id="gjen-forhandsvis" style="background:#dcfce7;border-radius:8px;padding:0.6rem 1rem;font-size:0.85rem;color:#166534;margin-bottom:1rem;display:none;"></div>
+
+            <button onclick="leggTilGjentakende()" id="gjen-knapp" style="background:#1a6b3c;color:#fff;border:none;border-radius:10px;padding:0.5rem 1.5rem;font-size:0.9rem;font-weight:700;cursor:pointer;">Opprett treninger</button>
+          </div>
+        </div>
+
         <div id="alert-reservasjon" class="alert alert-suksess"></div>
         <div id="reservasjon-liste"></div>
       </div>
 
-      <!-- LIGATABELL -->
+      <!-- NIFS AUTO-STANDINGS -->
       <div style="margin-top:3rem;">
-        <h2 style="font-size:1.5rem;font-weight:700;margin-bottom:0.5rem;">📊 Ligatabell</h2>
-        <p style="font-size:0.82rem;color:var(--grå);margin-bottom:1.5rem;">Legg inn/oppdater tabellen manuelt. Hak av "Oss" for å fremheve Brodd-lag. Gruppenavn vises som overskrift på fotball-siden.</p>
+        <h2 style="font-size:1.5rem;font-weight:700;margin-bottom:0.5rem;">📡 Automatisk ligatabell (NIFS)</h2>
+        <p style="font-size:0.82rem;color:var(--grå);margin-bottom:1.5rem;">
+          Tabellen hentes automatisk fra NIFS (fotball.no sin datakilde). Legg inn NIFS-team-ID for hvert lag vi ønsker å vise tabell for.
+          Finn team-ID ved å søke på <a href="https://api.nifs.no/teams/?name=Brodd" target="_blank" style="color:var(--grønn);">api.nifs.no</a>.
+          Brodd 2 G19 har ID <strong>74868</strong>.
+        </p>
+        <div style="background:#fff;border:1px solid var(--kant);border-radius:16px;padding:1.5rem;margin-bottom:1rem;">
+          <div id="nifs-team-liste" style="margin-bottom:1rem;"></div>
+          <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
+            <input type="number" id="nifs-ny-id" placeholder="F.eks. 74868" style="border:1px solid var(--kant);border-radius:8px;padding:0.4rem 0.75rem;font-size:0.9rem;width:140px;" min="1" />
+            <input type="text" id="nifs-ny-navn" placeholder="Kallenavn (valgfritt)" style="border:1px solid var(--kant);border-radius:8px;padding:0.4rem 0.75rem;font-size:0.9rem;flex:1;min-width:150px;" />
+            <button onclick="leggTilNifsTeam()" style="background:var(--grønn);color:#fff;border:none;border-radius:8px;padding:0.4rem 1rem;font-size:0.85rem;font-weight:700;cursor:pointer;">+ Legg til</button>
+          </div>
+          <div id="alert-nifs" class="alert alert-suksess" style="margin-top:0.75rem;"></div>
+        </div>
+      </div>
+
+      <!-- LIGATABELL MANUELL -->
+      <div style="margin-top:2rem;">
+        <h2 style="font-size:1.5rem;font-weight:700;margin-bottom:0.5rem;">📊 Manuell ligatabell (reserveløsning)</h2>
+        <p style="font-size:0.82rem;color:var(--grå);margin-bottom:1.5rem;">Brukes bare hvis NIFS-automatikken ikke fungerer. Hak av "Oss" for å fremheve Brodd-lag.</p>
 
         <div style="background:#fff;border:1px solid var(--kant);border-radius:16px;padding:1.5rem;margin-bottom:1.5rem;">
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;">
@@ -570,7 +683,7 @@ function byttSeksjon(seksjon) {
     document.getElementById('seksjon-' + s).style.display = s === seksjon ? 'block' : 'none';
     document.getElementById('seksjon-btn-' + s).classList.toggle('aktiv', s === seksjon);
   });
-  if (seksjon === 'fotball') { renderKamper(); renderReservasjoner(); lastLigatabellAdmin(); }
+  if (seksjon === 'fotball') { renderKamper(); renderReservasjoner(); lastLigatabellAdmin(); lastNifsTeams(); }
 }
 
 // --- FANER ---
@@ -906,7 +1019,153 @@ async function fjernBanner() {
   }
 }
 
+// --- NIFS TEAM IDs ---
+let nifsTeamIds = [74868];
+
+async function lastNifsTeams() {
+  try {
+    const res = await fetch(API_BASE + '/nifs-team-ids', { headers: { 'X-Admin-Password': PASSORD } });
+    if (res.ok) nifsTeamIds = await res.json();
+  } catch(_) {}
+  renderNifsTeams();
+}
+
+function renderNifsTeams() {
+  const container = document.getElementById('nifs-team-liste');
+  if (!nifsTeamIds.length) {
+    container.innerHTML = '<p style="color:var(--grå);font-size:0.88rem;">Ingen lag konfigurert. Standardlag Brodd 2 G19 (74868) brukes automatisk.</p>';
+    return;
+  }
+  let html = '<div style="display:flex;flex-direction:column;gap:0.5rem;">';
+  nifsTeamIds.forEach((id, i) => {
+    html += `<div style="display:flex;align-items:center;gap:0.75rem;background:var(--grå-lys);border-radius:8px;padding:0.5rem 0.75rem;">
+      <span style="font-weight:700;font-family:'Space Grotesk',sans-serif;color:var(--grønn);">${id}</span>
+      <span style="flex:1;font-size:0.88rem;color:var(--tekst);">NIFS team-ID</span>
+      <button onclick="fjernNifsTeam(${i})" style="background:none;border:none;cursor:pointer;color:#ef4444;padding:0.2rem;" title="Fjern">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>`;
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+async function leggTilNifsTeam() {
+  const idVal = parseInt(document.getElementById('nifs-ny-id').value);
+  if (!idVal || idVal < 1) { visAlert('nifs', 'Ugyldig team-ID.', 'feil'); return; }
+  if (nifsTeamIds.includes(idVal)) { visAlert('nifs', 'ID allerede lagt til.', 'feil'); return; }
+  nifsTeamIds = [...nifsTeamIds, idVal];
+  await lagreNifsTeams();
+  document.getElementById('nifs-ny-id').value = '';
+  document.getElementById('nifs-ny-navn').value = '';
+}
+
+async function fjernNifsTeam(index) {
+  nifsTeamIds = nifsTeamIds.filter((_, i) => i !== index);
+  await lagreNifsTeams();
+}
+
+async function lagreNifsTeams() {
+  const res = await fetch(API_BASE + '/nifs-team-ids', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Admin-Password': PASSORD },
+    body: JSON.stringify({ ids: nifsTeamIds })
+  });
+  if (res.ok) {
+    visAlert('nifs', 'Lagret! Tabellen oppdateres automatisk.', 'suksess');
+    renderNifsTeams();
+  } else {
+    visAlert('nifs', 'Feil ved lagring.', 'feil');
+  }
+}
+
 // --- BANERESERVASJONER ---
+// ---------- RES TAB SWITCHING ----------
+function byttResTab(tab) {
+  const erEnkelt = tab === 'enkelt';
+  document.getElementById('tab-enkelt').style.display = erEnkelt ? 'block' : 'none';
+  document.getElementById('tab-gjentakende').style.display = erEnkelt ? 'none' : 'block';
+  const btnE = document.getElementById('tab-enkelt-btn');
+  const btnG = document.getElementById('tab-gjentakende-btn');
+  btnE.style.background = erEnkelt ? '#3b82f6' : '#fff';
+  btnE.style.color = erEnkelt ? '#fff' : '#3b82f6';
+  btnE.style.border = erEnkelt ? 'none' : '2px solid #3b82f6';
+  btnG.style.background = erEnkelt ? '#fff' : '#3b82f6';
+  btnG.style.color = erEnkelt ? '#3b82f6' : '#fff';
+  btnG.style.border = erEnkelt ? '2px solid #3b82f6' : 'none';
+}
+
+// ---------- DAG-CHECKBOXES VISUAL ----------
+function oppdaterDagKnapp(idx) {
+  const cb = document.getElementById('dag-' + idx);
+  const lbl = document.getElementById('dag-' + idx + '-lbl');
+  if (cb.checked) {
+    lbl.style.background = '#1a6b3c';
+    lbl.style.color = '#fff';
+    lbl.style.borderColor = '#1a6b3c';
+  } else {
+    lbl.style.background = '#fff';
+    lbl.style.color = '#374151';
+    lbl.style.borderColor = '#d1fae5';
+  }
+  oppdaterForhandsvis();
+}
+
+// Patch: call oppdaterDagKnapp from checkboxes
+document.addEventListener('DOMContentLoaded', () => {
+  for (let i = 0; i <= 6; i++) {
+    const cb = document.getElementById('dag-' + i);
+    if (cb) cb.addEventListener('change', () => oppdaterDagKnapp(i));
+  }
+  // Set default fra-dato to today
+  const idag = new Date().toISOString().slice(0,10);
+  const fdEl = document.getElementById('gjen-fra-dato');
+  if (fdEl && !fdEl.value) fdEl.value = idag;
+});
+
+// ---------- FORHÅNDSVISNING ----------
+function beregnDatoer() {
+  // valgte ukedager (0=Sun,1=Mon,...,6=Sat)
+  const valgteDager = [];
+  for (let i = 0; i <= 6; i++) {
+    const cb = document.getElementById('dag-' + i);
+    if (cb && cb.checked) valgteDager.push(parseInt(cb.value));
+  }
+  const fraDato = document.getElementById('gjen-fra-dato').value;
+  const antUker = parseInt(document.getElementById('gjen-uker').value) || 4;
+  if (!fraDato || !valgteDager.length) return [];
+
+  const start = new Date(fraDato + 'T12:00:00');
+  const datoer = [];
+  for (let d = 0; d < antUker * 7; d++) {
+    const dag = new Date(start);
+    dag.setDate(dag.getDate() + d);
+    if (valgteDager.includes(dag.getDay())) {
+      datoer.push(dag.toISOString().slice(0,10));
+    }
+  }
+  return datoer;
+}
+
+function oppdaterForhandsvis() {
+  const datoer = beregnDatoer();
+  const el = document.getElementById('gjen-forhandsvis');
+  const knapp = document.getElementById('gjen-knapp');
+  if (!datoer.length) {
+    el.style.display = 'none';
+    knapp.textContent = 'Opprett treninger';
+    return;
+  }
+  const DAGER = ['søn','man','tir','ons','tor','fre','lør'];
+  const forste = new Date(datoer[0]+'T12:00:00');
+  const siste  = new Date(datoer[datoer.length-1]+'T12:00:00');
+  const fmt = d => `${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()}`;
+  el.textContent = `✓ Vil opprette ${datoer.length} treninger fra ${fmt(forste)} til ${fmt(siste)}`;
+  el.style.display = 'block';
+  knapp.textContent = `Opprett ${datoer.length} treninger`;
+}
+
+// ---------- ENKELT RESERVASJON ----------
 async function leggTilReservasjon() {
   const dato = document.getElementById('res-dato').value;
   const fraTid = document.getElementById('res-fra').value;
@@ -930,6 +1189,47 @@ async function leggTilReservasjon() {
   } else {
     visAlert('reservasjon', 'Feil ved lagring.', 'feil');
   }
+}
+
+// ---------- GJENTAKENDE RESERVASJONER ----------
+async function leggTilGjentakende() {
+  const datoer = beregnDatoer();
+  const fraTid = document.getElementById('gjen-fra-tid').value;
+  const tilTid = document.getElementById('gjen-til-tid').value;
+  const tittel = document.getElementById('gjen-tittel').value.trim();
+  const type   = document.getElementById('gjen-type').value;
+
+  if (!datoer.length) { visAlert('reservasjon', 'Velg minst én ukedag og fra-dato.', 'feil'); return; }
+  if (!tittel) { visAlert('reservasjon', 'Fyll inn beskrivelse.', 'feil'); return; }
+
+  const knapp = document.getElementById('gjen-knapp');
+  knapp.disabled = true;
+  knapp.textContent = 'Oppretter…';
+
+  let ok = 0, feil = 0;
+  for (const dato of datoer) {
+    const res = await fetch(API_BASE + '/bane-reservasjoner', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': PASSORD },
+      body: JSON.stringify({ dato, fraTid, tilTid, tittel, type })
+    });
+    if (res.ok) ok++; else feil++;
+  }
+
+  knapp.disabled = false;
+  oppdaterForhandsvis();
+  if (feil === 0) {
+    visAlert('reservasjon', `✓ ${ok} treninger opprettet!`, 'suksess');
+    // Reset checkboxes
+    for (let i = 0; i <= 6; i++) {
+      const cb = document.getElementById('dag-' + i);
+      if (cb) { cb.checked = false; oppdaterDagKnapp(i); }
+    }
+    document.getElementById('gjen-tittel').value = '';
+  } else {
+    visAlert('reservasjon', `${ok} opprettet, ${feil} feilet.`, 'feil');
+  }
+  await renderReservasjoner();
 }
 
 async function slettReservasjon(id) {
