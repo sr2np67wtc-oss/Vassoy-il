@@ -398,20 +398,26 @@ footer ul a:hover { color: #fff; }
 .takk-melding.synlig { display: block; }
 
 /* ===== RESPONSIV ===== */
+
+/* Nav kollapser til hamburger ved smalere vinduer */
 @media (max-width: 1200px) {
   .nav-links, .btn-nav { display: none; }
   .hamburger { display: block; }
+}
+
+/* Layout/grid kollapser bare på ekte mobil */
+@media (max-width: 650px) {
   .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
   .grid-2, .grid-2-3 { grid-template-columns: 1fr; }
   .grid-3 { grid-template-columns: 1fr 1fr; }
   .skjema-rad { grid-template-columns: 1fr; }
-}
-@media (max-width: 600px) {
-  .grid-3 { grid-template-columns: 1fr; }
   .hero-innhold h1 { font-size: 2.5rem; }
   .btn-gruppe { flex-direction: column; width: 100%; }
   .btn-gruppe .btn { width: 100%; justify-content: center; }
   .footer-bunn { flex-direction: column; text-align: center; }
+}
+@media (max-width: 400px) {
+  .grid-3 { grid-template-columns: 1fr; }
 }
 
 .btn-gruppe {
