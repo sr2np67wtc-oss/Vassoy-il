@@ -27,7 +27,7 @@
     .bane-dag-dato .dag-tall { font-size: 1.35rem; font-weight: 800; color: var(--tekst); line-height: 1.1; font-family: 'Space Grotesk', sans-serif; }
     .bane-dag-dato .dag-mnd { font-size: 0.75rem; color: var(--grå); }
     .bane-dag-skille { width: 1px; background: var(--kant); flex-shrink: 0; align-self: stretch; margin: 0 0.25rem; }
-    .bane-dag-innhold { flex: 1; padding-top: 0.15rem; }
+    .bane-dag-innhold { flex: 1; min-width: 0; padding-top: 0.15rem; }
     .bane-ledig { display: flex; align-items: center; gap: 0.5rem; color: var(--grønn); font-weight: 600; font-size: 0.9rem; }
     .bane-ledig::before { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--grønn); }
     .bane-hendelse {
@@ -40,7 +40,7 @@
     .hendelse-prikk.trening { background: #3b82f6; }
     .hendelse-prikk.annet { background: #8b5cf6; }
     .hendelse-tid { font-size: 0.78rem; color: var(--grå); white-space: nowrap; font-family: 'Space Grotesk', sans-serif; }
-    .hendelse-tittel { font-weight: 600; color: var(--tekst); }
+    .hendelse-tittel { font-weight: 600; color: var(--tekst); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
     .uke-header {
       font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
       letter-spacing: 0.1em; color: var(--grå); padding: 1.5rem 0 0.5rem;
@@ -151,7 +151,7 @@
 <!-- ===================== BANEOVERSIKT ===================== -->
 <section class="seksjon" id="bane">
   <div class="container">
-    <div class="grid-2-3" style="gap:3rem;">
+    <div class="grid-2-3" style="grid-template-columns:3fr 2fr;gap:3rem;">
 
       <!-- VENSTRE: Bane-kalender -->
       <div>
@@ -313,7 +313,7 @@ async function lastBaneKalender() {
           html += `<div class="bane-hendelse">
             <div class="hendelse-prikk ${h.type}"></div>
             <span class="hendelse-tid">${h.fra}–${h.til}</span>
-            <span class="hendelse-tittel">${h.tittel}</span>
+            <span class="hendelse-tittel">${h.tittel.replace(/^Kamp:\s*/i,'')}</span>
           </div>`;
         });
       }
