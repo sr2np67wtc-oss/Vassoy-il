@@ -183,7 +183,7 @@
         </div>
       </div>
 
-      <!-- HØYRE: Info om banen -->
+      <!-- HØYRE: Info + kamper -->
       <div>
         <div style="background:var(--grønn-lys);border-radius:18px;padding:1.75rem;margin-bottom:1.5rem;">
           <h3 style="font-size:1.1rem;font-weight:700;color:var(--grønn-mørk);margin-bottom:1rem;">🏟️ Om Vassøy Kunstgress</h3>
@@ -202,42 +202,28 @@
             </li>
           </ul>
         </div>
-        <div style="background:#fff;border-radius:18px;border:1px solid var(--kant);padding:1.75rem;">
-          <h3 style="font-size:1rem;font-weight:700;margin-bottom:0.5rem;">Vil du leie banen?</h3>
-          <p style="font-size:0.88rem;color:var(--grå);margin-bottom:1.25rem;">Ta kontakt med oss for å booke Vassøy Kunstgress til kamp eller trening.</p>
-          <a href="mailto:vassoy.il@gmail.com" class="btn btn-primær" style="padding:0.5rem 1.25rem;font-size:0.88rem;">Send e-post</a>
+
+        <!-- KAMPPROGRAM -->
+        <div style="background:#fff;border-radius:18px;border:1px solid var(--kant);padding:1.5rem;">
+          <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+            ⚽ Kommende kamper
+          </h3>
+          <div id="kamp-liste-pub">
+            <div style="color:var(--grå);font-size:0.88rem;">Laster kamper…</div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ===================== KAMPER OG LIGATABELL ===================== -->
+<!-- ===================== LIGATABELL ===================== -->
 <section class="seksjon" style="background:var(--grå-lys);" id="kamper">
   <div class="container">
-
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:2rem;">
-      <h2 style="font-size:1.75rem;font-weight:700;">Kamper &amp; tabeller</h2>
-      <div class="seksjon-tabs" id="kamp-tabs">
-        <button class="seksjon-tab-btn aktiv" onclick="byttTab('kamper')">Kamper</button>
-        <button class="seksjon-tab-btn" onclick="byttTab('tabell')">Ligatabell</button>
-      </div>
+    <h2 style="font-size:1.75rem;font-weight:700;margin-bottom:2rem;">Ligatabell</h2>
+    <div id="liga-tabell-container">
+      <div style="color:var(--grå);font-size:0.9rem;">Laster tabell…</div>
     </div>
-
-    <!-- KAMPER PANEL -->
-    <div id="panel-kamper">
-      <div id="kamp-liste-pub">
-        <div style="color:var(--grå);font-size:0.9rem;">Laster kamper…</div>
-      </div>
-    </div>
-
-    <!-- LIGATABELL PANEL -->
-    <div id="panel-tabell" style="display:none;">
-      <div id="liga-tabell-container">
-        <div style="color:var(--grå);font-size:0.9rem;">Laster tabell…</div>
-      </div>
-    </div>
-
   </div>
 </section>
 
@@ -356,34 +342,29 @@ async function lastKamper() {
     const container = document.getElementById('kamp-liste-pub');
 
     if (!kamper.length) {
-      container.innerHTML = `<div style="text-align:center;padding:3rem;color:var(--grå);">
-        <p style="font-size:1rem;font-weight:600;">Ingen kamper planlagt</p>
-        <p style="font-size:0.85rem;margin-top:0.5rem;">Sjekk tilbake senere for oppdatert kampprogram.</p>
-      </div>`;
+      container.innerHTML = `<p style="color:var(--grå);font-size:0.88rem;text-align:center;padding:1rem 0;">Ingen kamper planlagt ennå.</p>`;
       return;
     }
 
     let html = '';
     kamper.forEach(k => {
       const d = new Date(k.dato + 'T12:00:00');
-      html += `<div class="kamp-kortrad">
-        <div class="kamp-dato-boks">
-          <span>${MNDR_NO[d.getMonth()].toUpperCase()}</span>
-          <span>${d.getDate()}</span>
+      const dagNavn = DAGER_NO[d.getDay()].slice(0,3);
+      html += `<div style="display:flex;align-items:center;gap:0.75rem;padding:0.65rem 0;border-bottom:1px solid var(--kant);">
+        <div style="width:42px;height:42px;background:var(--grønn-lys);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;">
+          <span style="font-size:0.55rem;font-weight:700;text-transform:uppercase;color:var(--grønn);line-height:1;">${MNDR_NO[d.getMonth()].toUpperCase()}</span>
+          <span style="font-size:1.15rem;font-weight:800;color:var(--grønn);line-height:1.2;">${d.getDate()}</span>
         </div>
-        <div style="flex:1;">
-          <p style="font-weight:700;font-size:1rem;margin:0 0 0.2rem;">${k.lag}</p>
-          <p style="color:var(--grå);font-size:0.82rem;margin:0;">${k.turnering || 'Kamp'}</p>
-        </div>
-        <div style="text-align:right;flex-shrink:0;">
-          <p style="font-weight:700;font-size:0.9rem;margin:0;">${formaterDato(k.dato)}</p>
-          <p style="color:var(--grå);font-size:0.82rem;margin:0;">Avspark kl ${k.tid}</p>
+        <div style="flex:1;min-width:0;">
+          <p style="font-weight:700;font-size:0.88rem;margin:0 0 0.1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${k.lag}</p>
+          <p style="color:var(--grå);font-size:0.77rem;margin:0;">${dagNavn} kl ${k.tid} · ${k.turnering || 'Kamp'}</p>
         </div>
       </div>`;
     });
-    container.innerHTML = html;
+    // Remove last border
+    container.innerHTML = `<div style="margin:0 -0.25rem;">${html}</div>`.replace(/border-bottom:1px solid var\(--kant\);">(?=[^<]*<\/div>\s*<\/div>\s*$)/, 'border-bottom:none;">');
   } catch(e) {
-    document.getElementById('kamp-liste-pub').innerHTML = '<p style="color:#ef4444;font-size:0.9rem;">Kunne ikke laste kamper.</p>';
+    document.getElementById('kamp-liste-pub').innerHTML = '<p style="color:#ef4444;font-size:0.88rem;">Kunne ikke laste kamper.</p>';
   }
 }
 
@@ -470,19 +451,10 @@ async function lastLigatabell() {
   }
 }
 
-// ---------- TAB SWITCHING ----------
-function byttTab(fane) {
-  document.getElementById('panel-kamper').style.display = fane === 'kamper' ? 'block' : 'none';
-  document.getElementById('panel-tabell').style.display = fane === 'tabell' ? 'block' : 'none';
-  document.querySelectorAll('#kamp-tabs .seksjon-tab-btn').forEach((btn, i) => {
-    btn.classList.toggle('aktiv', (i === 0 && fane === 'kamper') || (i === 1 && fane === 'tabell'));
-  });
-  if (fane === 'tabell') lastLigatabell();
-}
-
 // ---------- INIT ----------
 lastBaneKalender();
 lastKamper();
+lastLigatabell();
 </script>
 </body>
 </html>
