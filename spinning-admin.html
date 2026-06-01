@@ -151,8 +151,59 @@
     .alert-feil { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
     .alert.synlig { display: block; }
 
+    .seksjon-velger-bar {
+      display: flex;
+      gap: 0.5rem;
+      background: #fff;
+      border-radius: 14px;
+      padding: 0.3rem;
+      border: 1px solid var(--kant);
+      margin-bottom: 2.5rem;
+      width: fit-content;
+    }
+    .seksjon-btn {
+      padding: 0.6rem 1.75rem;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: var(--grå);
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+    .seksjon-btn.aktiv { background: var(--grønn); color: #fff; }
+
+    .kamp-rad {
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid var(--kant);
+      padding: 0.9rem 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.6rem;
+    }
+    .kamp-dato-boks {
+      width: 46px;
+      height: 46px;
+      background: #f0fdf4;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .kamp-dato-boks span:first-child { font-size: 0.58rem; font-weight: 700; text-transform: uppercase; color: var(--grønn); }
+    .kamp-dato-boks span:last-child { font-size: 1.25rem; font-weight: 800; color: var(--grønn); line-height: 1.1; }
+
     @media print {
-      .admin-topbar, .fane-bar, .ingen-print { display: none; }
+      .admin-topbar, .fane-bar, .seksjon-velger-bar, .ingen-print { display: none; }
       body { background: #fff; }
       .session-rad { box-shadow: none; border: 1px solid #ddd; }
     }
@@ -187,14 +238,23 @@
       <div class="admin-topbar-inner">
         <div class="admin-logo">
           <img src="bilder/logo.png" alt="Vassøy IL" />
-          <span>Vassøy IL<small>Admin · Spinning</small></span>
+          <span>Vassøy IL<small>Admin</small></span>
         </div>
         <button onclick="loggUt()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.8);padding:0.4rem 1rem;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:500;">Logg ut</button>
       </div>
     </div>
   </div>
 
-  <div class="container" style="padding-top:2.5rem;padding-bottom:4rem;">
+  <div class="container" style="padding-top:2rem;padding-bottom:4rem;">
+
+    <!-- SEKSJONSVELGER -->
+    <div class="seksjon-velger-bar ingen-print">
+      <button class="seksjon-btn aktiv" id="seksjon-btn-spinning" onclick="byttSeksjon('spinning')">🚴 Spinning</button>
+      <button class="seksjon-btn" id="seksjon-btn-fotball" onclick="byttSeksjon('fotball')">⚽ Fotball</button>
+    </div>
+
+    <!-- SEKSJON: SPINNING -->
+    <div id="seksjon-spinning">
 
     <!-- STATISTIKK -->
     <div class="grid-3" style="margin-bottom:2.5rem;">
@@ -298,6 +358,58 @@
       <div id="bestilling-liste"></div>
     </div>
 
+    </div><!-- /seksjon-spinning -->
+
+    <!-- SEKSJON: FOTBALL -->
+    <div id="seksjon-fotball" style="display:none;">
+
+      <!-- LEGG TIL KAMP -->
+      <div class="session-rad" style="margin-bottom:2rem;background:var(--grønn-lys);border-color:rgba(25,133,83,0.2);">
+        <div style="padding:1.25rem;">
+          <h3 style="font-size:1rem;font-weight:700;color:var(--grønn-mørk);margin-bottom:1rem;">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:0.4rem;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Legg til kamp manuelt
+          </h3>
+          <div class="skjema-rad" style="margin-bottom:1rem;">
+            <div class="skjema-gruppe" style="margin-bottom:0;">
+              <label for="kamp-dato">Dato</label>
+              <input type="date" id="kamp-dato" />
+            </div>
+            <div class="skjema-gruppe" style="margin-bottom:0;">
+              <label for="kamp-tid">Avspark</label>
+              <input type="time" id="kamp-tid" value="19:00" />
+            </div>
+          </div>
+          <div class="skjema-rad" style="margin-bottom:1rem;">
+            <div class="skjema-gruppe" style="margin-bottom:0;">
+              <label for="kamp-lag">Kamptittel</label>
+              <input type="text" id="kamp-lag" placeholder="F.eks. Brodd G16 – Hinna G16" />
+            </div>
+            <div class="skjema-gruppe" style="margin-bottom:0;">
+              <label for="kamp-turnering">Turnering / klasse</label>
+              <input type="text" id="kamp-turnering" placeholder="F.eks. Regionsserie G16" />
+            </div>
+          </div>
+          <button onclick="leggTilKamp()" class="btn btn-primær" style="padding:0.5rem 1.5rem;font-size:0.9rem;">Legg til kamp</button>
+        </div>
+      </div>
+
+      <div id="alert-fotball" class="alert alert-suksess"></div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.25rem;">
+        <h2 style="font-size:1.5rem;font-weight:700;">Kommende kamper på Vassøy</h2>
+        <button onclick="renderKamper()" style="background:none;border:1.5px solid var(--kant);border-radius:8px;padding:0.4rem 1rem;font-size:0.85rem;cursor:pointer;color:var(--grå);">
+          ↻ Oppdater
+        </button>
+      </div>
+
+      <p style="font-size:0.82rem;color:var(--grå);margin-bottom:1.25rem;">
+        Kamper hentet automatisk fra fotball.no er merket <span style="background:#f0f9ff;color:#0284c7;padding:0.1rem 0.5rem;border-radius:4px;font-size:0.75rem;font-weight:600;">fotball.no</span>. Manuelle kamper kan slettes.
+      </p>
+
+      <div id="kamp-liste"></div>
+    </div><!-- /seksjon-fotball -->
+
   </div>
 </div>
 
@@ -366,6 +478,15 @@ function loggUt() {
   document.getElementById('admin-dashboard').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('passord-input').value = '';
+}
+
+// --- SEKSJONER ---
+function byttSeksjon(seksjon) {
+  ['spinning','fotball'].forEach(s => {
+    document.getElementById('seksjon-' + s).style.display = s === seksjon ? 'block' : 'none';
+    document.getElementById('seksjon-btn-' + s).classList.toggle('aktiv', s === seksjon);
+  });
+  if (seksjon === 'fotball') renderKamper();
 }
 
 // --- FANER ---
@@ -698,6 +819,86 @@ async function fjernBanner() {
     document.getElementById('banner-input').value = '';
     document.getElementById('banner-aktiv-visning').style.display = 'none';
     visAlert('timeplan', 'Melding fjernet.', 'suksess');
+  }
+}
+
+// --- FOTBALL ---
+async function leggTilKamp() {
+  const dato = document.getElementById('kamp-dato').value;
+  const tid = document.getElementById('kamp-tid').value;
+  const lag = document.getElementById('kamp-lag').value.trim();
+  const turnering = document.getElementById('kamp-turnering').value.trim();
+
+  if (!dato) { visAlert('fotball', 'Velg en dato.', 'feil'); return; }
+  if (!lag) { visAlert('fotball', 'Fyll inn kamptittel.', 'feil'); return; }
+
+  const res = await fetch(API_BASE + '/fotball-kamper', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Admin-Password': PASSORD },
+    body: JSON.stringify({ dato, tid: tid || '19:00', lag, turnering })
+  });
+  if (res.ok) {
+    document.getElementById('kamp-dato').value = '';
+    document.getElementById('kamp-lag').value = '';
+    document.getElementById('kamp-turnering').value = '';
+    visAlert('fotball', 'Kamp lagt til!', 'suksess');
+    await renderKamper();
+  } else {
+    visAlert('fotball', 'Feil ved lagring.', 'feil');
+  }
+}
+
+async function slettKamp(id) {
+  if (!confirm('Slett denne kampen?')) return;
+  const res = await fetch(API_BASE + '/fotball-kamper/' + id, {
+    method: 'DELETE',
+    headers: { 'X-Admin-Password': PASSORD }
+  });
+  if (res.ok) await renderKamper();
+}
+
+async function renderKamper() {
+  const container = document.getElementById('kamp-liste');
+  container.innerHTML = '<p style="color:var(--grå);font-size:0.9rem;">Laster kamper…</p>';
+  try {
+    const res = await fetch(API_BASE + '/fotball-kamper/alle', { headers: { 'X-Admin-Password': PASSORD } });
+    const kamper = await res.json();
+    if (!kamper.length) {
+      container.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--grå);"><p style="font-size:1rem;font-weight:600;">Ingen kamper funnet</p><p style="font-size:0.85rem;margin-top:0.5rem;">Legg til manuelt, eller venter på data fra fotball.no.</p></div>';
+      return;
+    }
+    const DAGER = ['Søndag','Mandag','Tirsdag','Onsdag','Torsdag','Fredag','Lørdag'];
+    const MNED = ['jan','feb','mar','apr','mai','jun','jul','aug','sep','okt','nov','des'];
+    let html = '';
+    kamper.forEach(k => {
+      const d = new Date(k.dato + 'T12:00:00');
+      const datoTekst = `${DAGER[d.getDay()]} ${d.getDate()}. ${MNED[d.getMonth()]}`;
+      const idag = new Date().toISOString().slice(0,10);
+      const passert = k.dato < idag;
+      html += `
+      <div class="kamp-rad" style="${passert ? 'opacity:0.5;' : ''}">
+        <div class="kamp-dato-boks">
+          <span>${MNED[d.getMonth()].toUpperCase()}</span>
+          <span>${d.getDate()}</span>
+        </div>
+        <div style="flex:1;">
+          <p style="font-weight:700;font-size:0.95rem;margin:0 0 0.1rem;">${k.lag}</p>
+          <p style="color:var(--grå);font-size:0.8rem;margin:0;">${k.turnering || '—'} &nbsp;·&nbsp; kl ${k.tid}</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.75rem;">
+          ${k.manuell
+            ? `<span style="background:#f3f4f6;color:var(--grå);padding:0.15rem 0.5rem;border-radius:4px;font-size:0.72rem;font-weight:600;">manuell</span>
+               <button onclick="slettKamp('${k.id}')" style="background:none;border:none;cursor:pointer;color:#ef4444;padding:0.25rem;" title="Slett">
+                 <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+               </button>`
+            : `<span style="background:#f0f9ff;color:#0284c7;padding:0.15rem 0.5rem;border-radius:4px;font-size:0.72rem;font-weight:600;">fotball.no</span>`
+          }
+        </div>
+      </div>`;
+    });
+    container.innerHTML = html;
+  } catch(e) {
+    container.innerHTML = '<p style="color:#ef4444;font-size:0.9rem;">Kunne ikke laste kamper.</p>';
   }
 }
 
