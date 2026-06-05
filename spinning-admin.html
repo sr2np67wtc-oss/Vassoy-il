@@ -217,14 +217,18 @@
     <div class="login-kort">
       <div style="text-align:center;margin-bottom:2rem;">
         <img src="bilder/logo.png" alt="Vassøy IL" style="width:64px;height:64px;border-radius:50%;margin:0 auto 1rem;display:block;box-shadow:0 2px 12px rgba(0,0,0,0.1);" />
-        <h1 style="font-size:1.5rem;font-weight:700;margin-bottom:0.25rem;">Admin – Spinning</h1>
+        <h1 style="font-size:1.5rem;font-weight:700;margin-bottom:0.25rem;">Admin</h1>
         <p style="color:var(--grå);font-size:0.9rem;">Vassøy Idrettslag</p>
       </div>
       <div class="skjema-gruppe">
-        <label for="passord-input">Passord</label>
-        <input type="password" id="passord-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')loggInn()" />
+        <label for="bruker-input">Brukernavn</label>
+        <input type="text" id="bruker-input" placeholder="Ditt navn" autocomplete="username" onkeydown="if(event.key==='Enter')loggInn()" />
       </div>
-      <div id="login-feil" class="alert alert-feil">Feil passord. Prøv igjen.</div>
+      <div class="skjema-gruppe">
+        <label for="passord-input">Passord</label>
+        <input type="password" id="passord-input" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')loggInn()" />
+      </div>
+      <div id="login-feil" class="alert alert-feil">Feil brukernavn eller passord. Prøv igjen.</div>
       <button onclick="loggInn()" class="btn btn-primær btn-full" style="margin-top:0.5rem;">Logg inn</button>
     </div>
   </div>
@@ -240,7 +244,10 @@
           <img src="bilder/logo.png" alt="Vassøy IL" />
           <span>Vassøy IL<small>Admin</small></span>
         </div>
-        <button onclick="loggUt()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.8);padding:0.4rem 1rem;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:500;">Logg ut</button>
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <span id="topbar-bruker-namn" style="color:rgba(255,255,255,0.75);font-size:0.85rem;font-weight:500;"></span>
+          <button onclick="loggUt()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.8);padding:0.4rem 1rem;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:500;">Logg ut</button>
+        </div>
       </div>
     </div>
   </div>
@@ -611,7 +618,12 @@
 </div>
 
 <script>
-const PASSORD = 'Emmcri75';
+const BRUKERE = {
+  'andreas':  { navn: 'Andreas',  passord: 'Emmcri75',  rolle: 'full' },
+  'torerik':  { navn: 'Tor Erik', passord: 'Bane2025',  rolle: 'fotball' },
+  'kjetil':   { navn: 'Kjetil',   passord: 'Felt2025',  rolle: 'fotball' },
+};
+const PASSORD = 'Emmcri75'; // server-side API-passord
 const API_BASE = 'https://vassoy-il.replit.app/api';
 const STORAGE_SESSIONS = 'vassoy_spinning_sessions';
 const STORAGE_BOOKINGS = 'vassoy_spinning_bookings';
@@ -656,14 +668,29 @@ async function apiSession(method, id, body) {
 }
 
 // --- AUTH ---
+function applyRolle(rolle, navn) {
+  document.getElementById('topbar-bruker-namn').textContent = 'Hei, ' + navn;
+  if (rolle === 'fotball') {
+    document.getElementById('seksjon-btn-spinning').style.display = 'none';
+    document.getElementById('seksjon-spinning').style.display = 'none';
+    document.getElementById('seksjon-fotball').style.display = 'block';
+    document.getElementById('seksjon-btn-fotball').classList.add('aktiv');
+  }
+}
+
 function loggInn() {
+  const brukerKey = document.getElementById('bruker-input').value.trim().toLowerCase().replace(/\s/g, '');
   const pw = document.getElementById('passord-input').value;
   const feil = document.getElementById('login-feil');
-  if (pw === PASSORD) {
-    sessionStorage.setItem('spinning_admin', '1');
+  const konto = BRUKERE[brukerKey];
+  if (konto && pw === konto.passord) {
+    sessionStorage.setItem('admin_bruker', JSON.stringify({ id: brukerKey, navn: konto.navn, rolle: konto.rolle }));
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('admin-dashboard').style.display = 'block';
-    renderAlt();
+    feil.classList.remove('synlig');
+    applyRolle(konto.rolle, konto.navn);
+    if (konto.rolle === 'full') renderAlt();
+    else { renderKamper(); renderReservasjoner(); lastLigatabellAdmin(); lastNifsTeams(); }
   } else {
     feil.classList.add('synlig');
     document.getElementById('passord-input').value = '';
@@ -671,9 +698,10 @@ function loggInn() {
 }
 
 function loggUt() {
-  sessionStorage.removeItem('spinning_admin');
+  sessionStorage.removeItem('admin_bruker');
   document.getElementById('admin-dashboard').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('bruker-input').value = '';
   document.getElementById('passord-input').value = '';
 }
 
@@ -1452,10 +1480,19 @@ async function renderAlt() {
 
 // Auto-login fra session
 window.addEventListener('DOMContentLoaded', () => {
-  if (sessionStorage.getItem('spinning_admin') === '1') {
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('admin-dashboard').style.display = 'block';
-    renderAlt();
+  const lagret = sessionStorage.getItem('admin_bruker');
+  if (lagret) {
+    try {
+      const bruker = JSON.parse(lagret);
+      const konto = BRUKERE[bruker.id];
+      if (konto) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('admin-dashboard').style.display = 'block';
+        applyRolle(konto.rolle, konto.navn);
+        if (konto.rolle === 'full') renderAlt();
+        else { renderKamper(); renderReservasjoner(); lastLigatabellAdmin(); lastNifsTeams(); }
+      }
+    } catch (_) {}
   }
 
   // Sett standard dato til neste tirsdag
