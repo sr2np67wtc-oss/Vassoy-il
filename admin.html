@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin – Spinning Vassøy IL</title>
+  <title>Admin – Vassøy IL</title>
   <link rel="icon" type="image/png" sizes="32x32" href="bilder/logo.png">
   <meta name="theme-color" content="#198553">
   <link rel="stylesheet" href="style.css" />
@@ -811,7 +811,7 @@ function byttSeksjon(seksjon) {
     document.getElementById('seksjon-btn-' + s).classList.toggle('aktiv', s === seksjon);
   });
   if (seksjon === 'fotball') { renderKamper(); renderReservasjoner(); lastLigatabellAdmin(); lastNifsTeams(); }
-  if (seksjon === 'leie') { renderLeieForesporsler(); renderBlokkPicker(); lastBlokkerteAdmin(); }
+  if (seksjon === 'leie') { lastLeieReserverte().then(renderLeieAdminPicker); renderLeieForesporsler(); renderBlokkPicker(); lastBlokkerteAdmin(); }
 }
 
 // --- FANER ---
@@ -1798,6 +1798,17 @@ const LEIE_MND = ['Januar','Februar','Mars','April','Mai','Juni','Juli','August'
 const LEIE_DAGER = ['Man','Tir','Ons','Tor','Fre','Lør','Søn'];
 let _leieValgte = [];
 let _leieVisManed = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+let _leieReserverte = [];
+
+async function lastLeieReserverte() {
+  try {
+    const r = await fetch(API_BASE + '/leie-kalender', {
+      headers: { 'X-Admin-Password': PASSORD }
+    });
+    const data = await r.json();
+    _leieReserverte = data.datoer || [];
+  } catch { _leieReserverte = []; }
+}
 
 function leieIdag() { return new Date().toISOString().slice(0, 10); }
 
@@ -1833,12 +1844,14 @@ function renderLeieAdminPicker() {
   for (let dag = 1; dag <= antallDager; dag++) {
     const iso = `${aar}-${String(man + 1).padStart(2,'0')}-${String(dag).padStart(2,'0')}`;
     const fortid = iso < today;
+    const reservert = _leieReserverte.includes(iso);
     const valgt = _leieValgte.includes(iso);
     let bg, farge, cursor, fw = '400';
-    if (fortid) { bg = 'transparent'; farge = '#d1d5db'; cursor = 'default'; }
-    else if (valgt) { bg = 'var(--grønn)'; farge = '#fff'; cursor = 'pointer'; fw = '700'; }
-    else { bg = '#f0fdf4'; farge = '#111'; cursor = 'pointer'; }
-    const klikk = !fortid ? `onclick="leieVelgDag('${iso}')"` : '';
+    if (fortid)         { bg = 'transparent'; farge = '#d1d5db'; cursor = 'default'; }
+    else if (reservert) { bg = '#fee2e2'; farge = '#ef4444'; cursor = 'not-allowed'; fw = '600'; }
+    else if (valgt)     { bg = 'var(--grønn)'; farge = '#fff'; cursor = 'pointer'; fw = '700'; }
+    else                { bg = '#f0fdf4'; farge = '#111'; cursor = 'pointer'; }
+    const klikk = (!fortid && !reservert) ? `onclick="leieVelgDag('${iso}')"` : '';
     html += `<div ${klikk} style="text-align:center;padding:0.35rem 0;font-size:0.82rem;font-weight:${fw};background:${bg};color:${farge};cursor:${cursor};border-radius:6px;border:1px solid transparent;">${dag}</div>`;
   }
   html += '</div>';
@@ -2002,7 +2015,7 @@ function toggleNyLeie() {
   if (!aapen) {
     _leieValgte = [];
     _leieVisManed = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-    renderLeieAdminPicker();
+    lastLeieReserverte().then(renderLeieAdminPicker);
   }
 }
 
@@ -2040,7 +2053,8 @@ async function lagreNyLeie(btn) {
     _leieVisManed = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     document.getElementById('leie-ny-dato').value = '';
     document.getElementById('ny-leie-skjema').style.display = 'none';
-    await renderLeieForesporsler();
+    await Promise.all([renderLeieForesporsler(), lastLeieReserverte()]);
+    renderLeieAdminPicker();
   } catch (e) {
     feilEl.textContent = 'Feil ved lagring: ' + e.message;
     feilEl.classList.add('synlig');
@@ -2059,7 +2073,8 @@ async function slettLeie(id, navn, btn) {
       headers: { 'X-Admin-Password': PASSORD }
     });
     if (!r.ok) throw new Error();
-    await renderLeieForesporsler();
+    await Promise.all([renderLeieForesporsler(), lastLeieReserverte()]);
+    renderLeieAdminPicker();
   } catch {
     btn.disabled = false; btn.textContent = orgTekst;
     alert('Feil ved sletting.');
@@ -2072,7 +2087,8 @@ async function markerLeieStatus(id, status) {
     headers: { 'Content-Type': 'application/json', 'X-Admin-Password': PASSORD },
     body: JSON.stringify({ status })
   });
-  renderLeieForesporsler();
+  await Promise.all([renderLeieForesporsler(), lastLeieReserverte()]);
+  renderLeieAdminPicker();
 }
 
 // --- INIT ---
