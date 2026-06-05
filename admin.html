@@ -664,8 +664,9 @@
             </div>
           </div>
           <div class="skjema-gruppe">
-            <label for="leie-ny-dato">Dato *</label>
-            <input type="text" id="leie-ny-dato" placeholder="F.eks. lørdag 15. august" />
+            <label>Dato *</label>
+            <div id="leie-admin-picker" style="border:1px solid var(--kant);border-radius:12px;padding:1rem;background:#fafafa;"></div>
+            <input type="hidden" id="leie-ny-dato" />
           </div>
           <div class="skjema-gruppe">
             <label for="leie-ny-melding">Merknader</label>
@@ -1770,9 +1771,92 @@ async function sendLeieDialogMelding(id, epost, btn) {
   }
 }
 
+// ===== LEIE ADMIN KALENDER =====
+const LEIE_MND = ['Januar','Februar','Mars','April','Mai','Juni','Juli','August','September','Oktober','November','Desember'];
+const LEIE_DAGER = ['Man','Tir','Ons','Tor','Fre','Lør','Søn'];
+let _leieValgte = [];
+let _leieVisManed = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+
+function leieIdag() { return new Date().toISOString().slice(0, 10); }
+
+function leieNorskDato(iso) {
+  const [y, m, d] = iso.split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  const dagNavn = ['søndag','mandag','tirsdag','onsdag','torsdag','fredag','lørdag'][dt.getDay()];
+  const manNavn = ['januar','februar','mars','april','mai','juni','juli','august','september','oktober','november','desember'][m - 1];
+  return `${dagNavn} ${d}. ${manNavn} ${y}`;
+}
+
+function renderLeieAdminPicker() {
+  const cont = document.getElementById('leie-admin-picker');
+  if (!cont) return;
+  const today = leieIdag();
+  const aar = _leieVisManed.getFullYear();
+  const man = _leieVisManed.getMonth();
+  const forsteDag = new Date(aar, man, 1);
+  const antallDager = new Date(aar, man + 1, 0).getDate();
+  let offset = forsteDag.getDay() - 1;
+  if (offset < 0) offset = 6;
+
+  let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
+    <button type="button" onclick="leieForrigeManed()" style="border:1px solid var(--kant);background:#fff;border-radius:8px;padding:0.3rem 0.75rem;cursor:pointer;font-size:1.1rem;line-height:1;">‹</button>
+    <span style="font-weight:700;font-size:0.95rem;">${LEIE_MND[man]} ${aar}</span>
+    <button type="button" onclick="leieNesteManed()" style="border:1px solid var(--kant);background:#fff;border-radius:8px;padding:0.3rem 0.75rem;cursor:pointer;font-size:1.1rem;line-height:1;">›</button>
+  </div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;">`;
+
+  for (const d of LEIE_DAGER) {
+    html += `<div style="text-align:center;font-size:0.65rem;font-weight:700;color:var(--grå);padding-bottom:0.3rem;">${d}</div>`;
+  }
+  for (let i = 0; i < offset; i++) html += '<div></div>';
+  for (let dag = 1; dag <= antallDager; dag++) {
+    const iso = `${aar}-${String(man + 1).padStart(2,'0')}-${String(dag).padStart(2,'0')}`;
+    const fortid = iso < today;
+    const valgt = _leieValgte.includes(iso);
+    let bg, farge, cursor, fw = '400';
+    if (fortid) { bg = 'transparent'; farge = '#d1d5db'; cursor = 'default'; }
+    else if (valgt) { bg = 'var(--grønn)'; farge = '#fff'; cursor = 'pointer'; fw = '700'; }
+    else { bg = '#f0fdf4'; farge = '#111'; cursor = 'pointer'; }
+    const klikk = !fortid ? `onclick="leieVelgDag('${iso}')"` : '';
+    html += `<div ${klikk} style="text-align:center;padding:0.35rem 0;font-size:0.82rem;font-weight:${fw};background:${bg};color:${farge};cursor:${cursor};border-radius:6px;border:1px solid transparent;">${dag}</div>`;
+  }
+  html += '</div>';
+
+  if (_leieValgte.length > 0) {
+    html += `<div style="margin-top:0.75rem;padding:0.65rem 0.85rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;font-size:0.82rem;">
+      <strong>Valgte datoer:</strong><br>${_leieValgte.slice().sort().map(leieNorskDato).join('<br>')}
+    </div>`;
+  } else {
+    html += `<p style="margin-top:0.5rem;font-size:0.8rem;color:var(--grå);">Klikk på én eller flere datoer.</p>`;
+  }
+  document.getElementById('leie-ny-dato').value = _leieValgte.slice().sort().join(',');
+  cont.innerHTML = html;
+}
+
+function leieVelgDag(iso) {
+  const idx = _leieValgte.indexOf(iso);
+  if (idx >= 0) _leieValgte.splice(idx, 1);
+  else _leieValgte.push(iso);
+  renderLeieAdminPicker();
+}
+function leieForrigeManed() {
+  _leieVisManed = new Date(_leieVisManed.getFullYear(), _leieVisManed.getMonth() - 1, 1);
+  renderLeieAdminPicker();
+}
+function leieNesteManed() {
+  _leieVisManed = new Date(_leieVisManed.getFullYear(), _leieVisManed.getMonth() + 1, 1);
+  renderLeieAdminPicker();
+}
+// ===== SLUTT LEIE ADMIN KALENDER =====
+
 function toggleNyLeie() {
   const el = document.getElementById('ny-leie-skjema');
-  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  const aapen = el.style.display !== 'none';
+  el.style.display = aapen ? 'none' : 'block';
+  if (!aapen) {
+    _leieValgte = [];
+    _leieVisManed = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    renderLeieAdminPicker();
+  }
 }
 
 async function lagreNyLeie(btn) {
@@ -1801,10 +1885,13 @@ async function lagreNyLeie(btn) {
       body: JSON.stringify({ navn, tlf, epost, type, gjester, dato, melding })
     });
     if (!r.ok) throw new Error('Serverfeil');
-    ['leie-ny-navn','leie-ny-tlf','leie-ny-epost','leie-ny-gjester','leie-ny-dato','leie-ny-melding'].forEach(id => {
+    ['leie-ny-navn','leie-ny-tlf','leie-ny-epost','leie-ny-gjester','leie-ny-melding'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
+    _leieValgte = [];
+    _leieVisManed = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    document.getElementById('leie-ny-dato').value = '';
     document.getElementById('ny-leie-skjema').style.display = 'none';
     await renderLeieForesporsler();
   } catch (e) {
