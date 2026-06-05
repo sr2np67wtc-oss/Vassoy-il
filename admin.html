@@ -2001,14 +2001,23 @@ async function lastBlokkerteAdmin() {
   const listEl = document.getElementById('blokk-liste');
   if (!listEl) return;
   try {
-    const r = await fetch(API_BASE + '/leie-blokkert', { headers: { 'X-Admin-Password': PASSORD } });
-    const data = await r.json();
-    // Oppdater _blokkerteSaved så kalenderern viser røde datoer
-    _blokkerteSaved = data.map(b => b.dato);
-    if (!data.length) {
-      listEl.innerHTML = '<p style="font-size:0.85rem;color:var(--grå);">Ingen blokkerte datoer.</p>';
+    // Hent manuelt blokkerte datoer (for listen med Fjern-knapper)
+    // + alle reserverte datoer (bookinger + manuelt) fra leie-kalender (admin)
+    const [rBlokkert, rKalender] = await Promise.all([
+      fetch(API_BASE + '/leie-blokkert', { headers: { 'X-Admin-Password': PASSORD } }),
+      fetch(API_BASE + '/leie-kalender', { headers: { 'X-Admin-Password': PASSORD } })
+    ]);
+    const blokkertData = await rBlokkert.json();
+    const kalenderData = await rKalender.json();
+
+    // _blokkerteSaved = ALLE opptatte datoer (bookinger + manuelle blokk)
+    _blokkerteSaved = kalenderData.datoer || [];
+
+    // Lista viser kun manuelt blokkerte datoer (med Fjern-knapp)
+    if (!blokkertData.length) {
+      listEl.innerHTML = '<p style="font-size:0.85rem;color:var(--grå);">Ingen manuelt blokkerte datoer.</p>';
     } else {
-      listEl.innerHTML = data.map(b => `
+      listEl.innerHTML = blokkertData.map(b => `
         <div style="display:flex;align-items:center;justify-content:space-between;padding:0.5rem 0.6rem;border:1px solid #fecaca;border-radius:8px;margin-bottom:0.4rem;background:#fef2f2;">
           <div>
             <span style="font-size:0.85rem;font-weight:600;">${norskDatoBlokk(b.dato)}</span>
@@ -2020,7 +2029,7 @@ async function lastBlokkerteAdmin() {
   } catch {
     listEl.innerHTML = '<p style="font-size:0.85rem;color:var(--grå);">Kunne ikke laste.</p>';
   }
-  // Tegn kalender på nytt med oppdaterte blokkerte datoer
+  // Tegn kalender på nytt med alle opptatte datoer
   renderBlokkPicker();
 }
 // ===== SLUTT BLOKKER DATOER =====
