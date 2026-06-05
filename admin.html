@@ -718,7 +718,7 @@ function innloggetNavn() {
 const BRUKERE = {
   'andreas':  { navn: 'Andreas',  passord: 'Emmcri75',  rolle: 'full' },
   'torerik':  { navn: 'Tor Erik', passord: 'Bane2025',  rolle: 'fotball' },
-  'kjetil':   { navn: 'Kjetil',   passord: 'Felt2025',  rolle: 'fotball' },
+  'kjetil':   { navn: 'Kjetil',   passord: 'Felt2025',  rolle: 'fotball-leie' },
 };
 const PASSORD = 'Emmcri75'; // server-side API-passord
 const API_BASE = 'https://vassoy-il.replit.app/api';
@@ -769,11 +769,14 @@ function applyRolle(rolle, navn) {
   document.getElementById('topbar-bruker-namn').textContent = 'Hei, ' + navn;
   if (rolle === 'full') {
     document.getElementById('seksjon-btn-leie').style.display = 'inline-flex';
-  } else if (rolle === 'fotball') {
+  } else if (rolle === 'fotball' || rolle === 'fotball-leie') {
     document.getElementById('seksjon-btn-spinning').style.display = 'none';
     document.getElementById('seksjon-spinning').style.display = 'none';
     document.getElementById('seksjon-fotball').style.display = 'block';
     document.getElementById('seksjon-btn-fotball').classList.add('aktiv');
+    if (rolle === 'fotball-leie') {
+      document.getElementById('seksjon-btn-leie').style.display = 'inline-flex';
+    }
   }
 }
 
@@ -789,7 +792,10 @@ function loggInn() {
     feil.classList.remove('synlig');
     applyRolle(konto.rolle, konto.navn);
     if (konto.rolle === 'full') renderAlt();
-    else { renderKamper(); renderReservasjoner(); lastLigatabellAdmin(); lastNifsTeams(); }
+    else {
+      renderKamper(); renderReservasjoner(); lastLigatabellAdmin(); lastNifsTeams();
+      if (konto.rolle === 'fotball-leie') { renderLeieForesporsler(); renderBlokkPicker(); lastBlokkerteAdmin(); }
+    }
   } else {
     feil.classList.add('synlig');
     document.getElementById('passord-input').value = '';
@@ -2169,7 +2175,10 @@ window.addEventListener('DOMContentLoaded', () => {
         document.getElementById('admin-dashboard').style.display = 'block';
         applyRolle(konto.rolle, konto.navn);
         if (konto.rolle === 'full') renderAlt();
-        else { renderKamper(); renderReservasjoner(); lastLigatabellAdmin(); lastNifsTeams(); }
+        else {
+          renderKamper(); renderReservasjoner(); lastLigatabellAdmin(); lastNifsTeams();
+          if (konto.rolle === 'fotball-leie') { renderLeieForesporsler(); renderBlokkPicker(); lastBlokkerteAdmin(); }
+        }
       }
     } catch (_) {}
   }
