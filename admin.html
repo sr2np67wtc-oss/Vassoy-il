@@ -1638,11 +1638,11 @@ async function renderLeieForesporsler() {
             </div>
           </div>
           <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
-            <button onclick="sendVippsPush('${f.id}',this)" class="btn btn-grønn" style="padding:0.5rem 1.15rem;font-size:0.9rem;">
-              📱 Send til Vipps-app
+            <button onclick="opprettVippsWeblenke('${f.id}',this)" class="btn btn-grønn" style="padding:0.5rem 1.15rem;font-size:0.9rem;">
+              💳 Opprett Vipps-lenke
             </button>
           </div>
-          <p style="font-size:0.78rem;color:var(--grå);margin-top:0.5rem;">Sender krav direkte til kundens Vipps-app på ${f.tlf}.</p>
+          <p style="font-size:0.78rem;color:var(--grå);margin-top:0.5rem;">Lenken kan kopieres eller sendes direkte på e-post til kunden.</p>
         </div>
       `;
 
