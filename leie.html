@@ -297,7 +297,7 @@ async function sendLeie(e) {
   const melding = document.getElementById('melding').value;
 
   try {
-    const r = await fetch('https://vassoy-il.replit.app/api/leie-foresp%C3%B8rsel', {
+    const r = await fetch('https://vassoy-il.replit.app/api/leie-foresporsel', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ navn, tlf, epost, type, gjester, dato, melding })
