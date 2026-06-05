@@ -2001,32 +2001,65 @@ async function lastBlokkerteAdmin() {
   const listEl = document.getElementById('blokk-liste');
   if (!listEl) return;
   try {
-    // Hent manuelt blokkerte datoer (for listen med Fjern-knapper)
-    // + alle reserverte datoer (bookinger + manuelt) fra leie-kalender (admin)
-    const [rBlokkert, rKalender] = await Promise.all([
-      fetch(API_BASE + '/leie-blokkert', { headers: { 'X-Admin-Password': PASSORD } }),
-      fetch(API_BASE + '/leie-kalender', { headers: { 'X-Admin-Password': PASSORD } })
+    // Hent manuelt blokkerte datoer, alle bookinger og full kalender parallelt
+    const [rBlokkert, rBestillinger, rKalender] = await Promise.all([
+      fetch(API_BASE + '/leie-blokkert',      { headers: { 'X-Admin-Password': PASSORD } }),
+      fetch(API_BASE + '/leie-foresporsler',   { headers: { 'X-Admin-Password': PASSORD } }),
+      fetch(API_BASE + '/leie-kalender',       { headers: { 'X-Admin-Password': PASSORD } })
     ]);
-    const blokkertData = await rBlokkert.json();
-    const kalenderData = await rKalender.json();
+    const blokkertData    = await rBlokkert.json();
+    const bestillingerData = await rBestillinger.json();
+    const kalenderData    = await rKalender.json();
 
-    // _blokkerteSaved = ALLE opptatte datoer (bookinger + manuelle blokk)
+    // _blokkerteSaved = ALLE opptatte datoer (bookinger + manuelle blokk) for kalender-farging
     _blokkerteSaved = kalenderData.datoer || [];
 
-    // Lista viser kun manuelt blokkerte datoer (med Fjern-knapp)
-    if (!blokkertData.length) {
-      listEl.innerHTML = '<p style="font-size:0.85rem;color:var(--grå);">Ingen manuelt blokkerte datoer.</p>';
-    } else {
-      listEl.innerHTML = blokkertData.map(b => `
+    // Bygg kombinert liste
+    let html = '';
+
+    // --- Bookinger (sorter etter første dato) ---
+    const bestillinger = Array.isArray(bestillingerData) ? bestillingerData : [];
+    if (bestillinger.length) {
+      bestillinger
+        .slice()
+        .sort((a, b) => (a.dato || '').localeCompare(b.dato || ''))
+        .forEach(b => {
+          const datoer = (b.dato || '').split(',').map(d => d.trim()).filter(Boolean);
+          const datoTekst = datoer.map(d => norskDatoBlokk(d)).join(' + ');
+          const statusFarge = b.status === 'ny' ? '#2563eb' : b.status === 'behandlet' ? '#d97706' : '#16a34a';
+          const statusTekst = b.status === 'ny' ? 'Ny' : b.status === 'behandlet' ? 'Behandlet' : 'Godkjent';
+          html += `
+          <div style="padding:0.5rem 0.6rem;border:1px solid #bfdbfe;border-radius:8px;margin-bottom:0.4rem;background:#eff6ff;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;">
+              <span style="font-size:0.85rem;font-weight:600;">${b.navn || '–'}</span>
+              <span style="font-size:0.7rem;font-weight:700;color:${statusFarge};background:${statusFarge}18;padding:0.1rem 0.4rem;border-radius:4px;">${statusTekst}</span>
+            </div>
+            <div style="font-size:0.75rem;color:#374151;margin-top:0.15rem;">${datoTekst}</div>
+            ${b.type ? `<div style="font-size:0.72rem;color:var(--grå);">${b.type}</div>` : ''}
+          </div>`;
+        });
+    }
+
+    // --- Manuelle blokkeringer ---
+    if (blokkertData.length) {
+      blokkertData.forEach(b => {
+        html += `
         <div style="display:flex;align-items:center;justify-content:space-between;padding:0.5rem 0.6rem;border:1px solid #fecaca;border-radius:8px;margin-bottom:0.4rem;background:#fef2f2;">
           <div>
             <span style="font-size:0.85rem;font-weight:600;">${norskDatoBlokk(b.dato)}</span>
             ${b.grunn ? `<br><span style="font-size:0.75rem;color:var(--grå);">${b.grunn}</span>` : ''}
           </div>
           <button onclick="fjernBlokk('${b.id}',this)" style="background:none;border:1px solid #fca5a5;color:#ef4444;border-radius:6px;padding:0.2rem 0.5rem;cursor:pointer;font-size:0.78rem;white-space:nowrap;">Fjern</button>
-        </div>`).join('');
+        </div>`;
+      });
     }
-  } catch {
+
+    if (!html) {
+      listEl.innerHTML = '<p style="font-size:0.85rem;color:var(--grå);">Ingen registrerte bookinger eller blokkerte datoer.</p>';
+    } else {
+      listEl.innerHTML = html;
+    }
+  } catch(e) {
     listEl.innerHTML = '<p style="font-size:0.85rem;color:var(--grå);">Kunne ikke laste.</p>';
   }
   // Tegn kalender på nytt med alle opptatte datoer
