@@ -263,6 +263,7 @@
     <div class="seksjon-velger-bar ingen-print">
       <button class="seksjon-btn aktiv" id="seksjon-btn-spinning" onclick="byttSeksjon('spinning')">🚴 Spinning</button>
       <button class="seksjon-btn" id="seksjon-btn-fotball" onclick="byttSeksjon('fotball')">⚽ Fotball</button>
+      <button class="seksjon-btn" id="seksjon-btn-leie" onclick="byttSeksjon('leie')" style="display:none;">🏠 Leie</button>
     </div>
 
     <!-- SEKSJON: SPINNING -->
@@ -619,6 +620,15 @@
 
     </div><!-- /seksjon-fotball -->
 
+    <!-- SEKSJON: LEIE (kun Andreas) -->
+    <div id="seksjon-leie" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;">
+        <h2 style="font-size:1.4rem;font-weight:700;margin:0;">🏠 Leieforespørsler</h2>
+        <button onclick="renderLeieForesporsler()" class="btn btn-kantlinje" style="font-size:0.85rem;">↻ Oppdater</button>
+      </div>
+      <div id="leie-liste"><p style="color:var(--grå);">Laster...</p></div>
+    </div><!-- /seksjon-leie -->
+
   </div>
 </div>
 
@@ -681,7 +691,9 @@ async function apiSession(method, id, body) {
 // --- AUTH ---
 function applyRolle(rolle, navn) {
   document.getElementById('topbar-bruker-namn').textContent = 'Hei, ' + navn;
-  if (rolle === 'fotball') {
+  if (rolle === 'full') {
+    document.getElementById('seksjon-btn-leie').style.display = 'inline-flex';
+  } else if (rolle === 'fotball') {
     document.getElementById('seksjon-btn-spinning').style.display = 'none';
     document.getElementById('seksjon-spinning').style.display = 'none';
     document.getElementById('seksjon-fotball').style.display = 'block';
@@ -718,11 +730,12 @@ function loggUt() {
 
 // --- SEKSJONER ---
 function byttSeksjon(seksjon) {
-  ['spinning','fotball'].forEach(s => {
+  ['spinning','fotball','leie'].forEach(s => {
     document.getElementById('seksjon-' + s).style.display = s === seksjon ? 'block' : 'none';
     document.getElementById('seksjon-btn-' + s).classList.toggle('aktiv', s === seksjon);
   });
   if (seksjon === 'fotball') { renderKamper(); renderReservasjoner(); lastLigatabellAdmin(); lastNifsTeams(); }
+  if (seksjon === 'leie') { renderLeieForesporsler(); }
 }
 
 // --- FANER ---
@@ -1522,6 +1535,106 @@ async function renderKamper() {
   } catch(e) {
     container.innerHTML = '<p style="color:#ef4444;font-size:0.9rem;">Kunne ikke laste kamper.</p>';
   }
+}
+
+// --- LEIE ---
+async function renderLeieForesporsler() {
+  const el = document.getElementById('leie-liste');
+  el.innerHTML = '<p style="color:var(--grå)">Laster...</p>';
+  try {
+    const r = await fetch(API_BASE + '/leie-foresporsler', { headers: { 'X-Admin-Password': PASSORD } });
+    if (!r.ok) throw new Error();
+    const data = await r.json();
+    if (!data.length) {
+      el.innerHTML = '<p style="color:var(--grå)">Ingen forespørsler ennå.</p>';
+      return;
+    }
+    el.innerHTML = data.map(f => {
+      const tidspunkt = new Date(f.createdAt).toLocaleString('nb-NO', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+      const belopKr = f.belopKrevd ? Math.round(f.belopKrevd / 100).toLocaleString('nb-NO') : null;
+      return `
+        <div class="session-rad" style="padding:1.25rem 1.5rem;margin-bottom:1rem;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:1rem;">
+            <div>
+              <div style="font-weight:700;font-size:1.05rem;">${f.navn}</div>
+              <div style="color:var(--grå);font-size:0.88rem;margin-top:0.25rem;">${f.type} · ${f.dato} · ${f.gjester} gjester</div>
+              <div style="font-size:0.85rem;margin-top:0.5rem;">
+                📞 ${f.tlf} &nbsp;·&nbsp; 📧 <a href="mailto:${f.epost}" style="color:var(--grønn);">${f.epost}</a>
+              </div>
+              ${f.melding ? `<div style="font-size:0.85rem;margin-top:0.5rem;color:var(--grå);">💬 ${f.melding}</div>` : ''}
+              <div style="font-size:0.78rem;color:var(--grå);margin-top:0.5rem;">Mottatt: ${tidspunkt}</div>
+            </div>
+            <span style="padding:0.3rem 0.85rem;border-radius:999px;font-size:0.8rem;font-weight:600;white-space:nowrap;background:${f.status==='ny'?'var(--grønn-lys)':'#f0f0f0'};color:${f.status==='ny'?'var(--grønn)':'#888'};">
+              ${f.status === 'ny' ? '🆕 Ny' : '✅ Behandlet'}
+            </span>
+          </div>
+
+          ${f.vippsUrl ? `
+            <div style="margin-bottom:1rem;padding:1rem;background:var(--grønn-lys);border-radius:10px;border:1px solid rgba(25,133,83,0.2);">
+              <div style="font-size:0.85rem;font-weight:600;margin-bottom:0.5rem;">✅ Vipps-lenke opprettet (kr ${belopKr}):</div>
+              <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+                <input type="text" value="${f.vippsUrl}" readonly onclick="this.select()"
+                  style="flex:1;min-width:200px;border:1px solid var(--kant);border-radius:7px;padding:0.4rem 0.6rem;font-size:0.8rem;background:#fff;cursor:text;" />
+                <button onclick="navigator.clipboard.writeText('${f.vippsUrl}').then(()=>{this.textContent='✓ Kopiert!';setTimeout(()=>this.textContent='Kopier',1800)})"
+                  class="btn btn-kantlinje" style="font-size:0.8rem;padding:0.4rem 0.9rem;">Kopier</button>
+              </div>
+            </div>
+          ` : `
+            <div style="margin-bottom:1rem;padding:1rem;background:#fafafa;border-radius:10px;border:1px solid var(--kant);">
+              <div style="font-size:0.85rem;font-weight:600;margin-bottom:0.75rem;">Opprett Vipps-betalingslenke</div>
+              <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+                <div style="position:relative;">
+                  <span style="position:absolute;left:0.7rem;top:50%;transform:translateY(-50%);font-weight:600;color:var(--grå);font-size:0.9rem;">kr</span>
+                  <input type="number" id="leie-belop-${f.id}" placeholder="Beløp (f.eks. 2500)" min="1"
+                    style="padding:0.5rem 0.75rem 0.5rem 2.3rem;border:1px solid var(--kant);border-radius:8px;font-size:0.95rem;width:190px;" />
+                </div>
+                <button onclick="opprettVippsLeie('${f.id}',this)" class="btn btn-grønn" style="padding:0.5rem 1.25rem;">Opprett Vipps-lenke</button>
+              </div>
+              <p style="font-size:0.78rem;color:var(--grå);margin-top:0.5rem;">Kopier lenken og send den til kunden via SMS eller e-post.</p>
+            </div>
+          `}
+
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+            ${f.status !== 'behandlet'
+              ? `<button onclick="markerLeieStatus('${f.id}','behandlet')" class="btn btn-kantlinje" style="font-size:0.85rem;padding:0.4rem 1rem;">✅ Merk som behandlet</button>`
+              : `<button onclick="markerLeieStatus('${f.id}','ny')" class="btn btn-kantlinje" style="font-size:0.85rem;padding:0.4rem 1rem;">↩ Merk som ny</button>`
+            }
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch {
+    el.innerHTML = '<p style="color:red;">Feil ved lasting av forespørsler.</p>';
+  }
+}
+
+async function opprettVippsLeie(id, btn) {
+  const inp = document.getElementById('leie-belop-' + id);
+  const belopKr = parseInt(inp ? inp.value : '');
+  if (!belopKr || belopKr < 1) { alert('Fyll inn et gyldig beløp i kroner.'); return; }
+  const orgTekst = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Oppretter...';
+  try {
+    const r = await fetch(API_BASE + '/leie-foresporsler/' + id + '/vipps', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': PASSORD },
+      body: JSON.stringify({ belopKr })
+    });
+    if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Ukjent feil'); }
+    await renderLeieForesporsler();
+  } catch (e) {
+    btn.disabled = false; btn.textContent = orgTekst;
+    alert('Feil ved oppretting av Vipps-lenke: ' + e.message);
+  }
+}
+
+async function markerLeieStatus(id, status) {
+  await fetch(API_BASE + '/leie-foresporsler/' + id + '/status', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Admin-Password': PASSORD },
+    body: JSON.stringify({ status })
+  });
+  renderLeieForesporsler();
 }
 
 // --- INIT ---

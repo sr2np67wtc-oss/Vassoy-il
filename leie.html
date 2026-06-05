@@ -282,8 +282,12 @@
 
 <script src="nav.js"></script>
 <script>
-function sendLeie(e) {
+async function sendLeie(e) {
   e.preventDefault();
+  const knapp = e.submitter;
+  const orgTekst = knapp ? knapp.textContent : '';
+  if (knapp) { knapp.disabled = true; knapp.textContent = 'Sender...'; }
+
   const navn    = document.getElementById('navn').value;
   const tlf     = document.getElementById('tlf').value;
   const epost   = document.getElementById('epost').value;
@@ -292,23 +296,19 @@ function sendLeie(e) {
   const dato    = document.getElementById('dato').value;
   const melding = document.getElementById('melding').value;
 
-  const subject = encodeURIComponent('Leieforespørsel: ' + type + ' – ' + dato);
-  const body = encodeURIComponent(
-    'Hei,\n\nJeg ønsker å sende en leieforespørsel:\n\n' +
-    'Navn: ' + navn + '\n' +
-    'Telefon: ' + tlf + '\n' +
-    'E-post: ' + epost + '\n' +
-    'Type arrangement: ' + type + '\n' +
-    'Antall gjester: ' + gjester + '\n' +
-    'Ønsket dato: ' + dato + '\n' +
-    (melding ? '\nTilleggsinformasjon:\n' + melding + '\n' : '') +
-    '\nMed vennlig hilsen,\n' + navn
-  );
-
-  window.location.href = 'mailto:vassoy.il@gmail.com?subject=' + subject + '&body=' + body;
-
-  document.getElementById('skjema-wrapper').style.display = 'none';
-  document.getElementById('takk-melding').classList.add('synlig');
+  try {
+    const r = await fetch('https://vassoy-il.replit.app/api/leie-foresp%C3%B8rsel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ navn, tlf, epost, type, gjester, dato, melding })
+    });
+    if (!r.ok) throw new Error('Serverfeil');
+    document.getElementById('skjema-wrapper').style.display = 'none';
+    document.getElementById('takk-melding').classList.add('synlig');
+  } catch {
+    if (knapp) { knapp.disabled = false; knapp.textContent = orgTekst; }
+    alert('Noe gikk galt. Prøv igjen, eller send oss en e-post på vassoy.il@gmail.com');
+  }
 }
 </script>
 </body>
