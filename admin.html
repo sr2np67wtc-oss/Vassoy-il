@@ -623,6 +623,10 @@
 </div>
 
 <script>
+function innloggetNavn() {
+  try { return JSON.parse(sessionStorage.getItem('admin_bruker') || '{}').navn || ''; } catch { return ''; }
+}
+
 const BRUKERE = {
   'andreas':  { navn: 'Andreas',  passord: 'Emmcri75',  rolle: 'full' },
   'torerik':  { navn: 'Tor Erik', passord: 'Bane2025',  rolle: 'fotball' },
@@ -1212,7 +1216,7 @@ async function leggTilReservasjon() {
   const res = await fetch(API_BASE + '/bane-reservasjoner', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-Admin-Password': PASSORD },
-    body: JSON.stringify({ dato, fraTid, tilTid, tittel, type })
+    body: JSON.stringify({ dato, fraTid, tilTid, tittel, type, publisertAv: innloggetNavn() })
   });
   if (res.ok) {
     document.getElementById('res-dato').value = '';
@@ -1244,7 +1248,7 @@ async function leggTilGjentakende() {
     const res = await fetch(API_BASE + '/bane-reservasjoner', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Admin-Password': PASSORD },
-      body: JSON.stringify({ dato, fraTid, tilTid, tittel, type })
+      body: JSON.stringify({ dato, fraTid, tilTid, tittel, type, publisertAv: innloggetNavn() })
     });
     if (res.ok) ok++; else feil++;
   }
@@ -1294,7 +1298,7 @@ async function renderReservasjoner() {
         </div>
         <div style="flex:1;">
           <p style="font-weight:700;font-size:0.95rem;margin:0 0 0.1rem;">${r.tittel}</p>
-          <p style="color:var(--grå);font-size:0.8rem;margin:0;">${r.type} &nbsp;·&nbsp; kl ${r.fraTid}–${r.tilTid}</p>
+          <p style="color:var(--grå);font-size:0.8rem;margin:0;">${r.type} &nbsp;·&nbsp; kl ${r.fraTid}–${r.tilTid}${r.publisertAv ? ` &nbsp;·&nbsp; <span style="color:#6b7280;">👤 ${r.publisertAv}</span>` : ''}</p>
         </div>
         <button onclick="slettReservasjon('${r.id}')" style="background:none;border:none;cursor:pointer;color:#ef4444;padding:0.25rem;" title="Slett">
           <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
@@ -1383,7 +1387,7 @@ async function leggTilKamp() {
   const res = await fetch(API_BASE + '/fotball-kamper', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-Admin-Password': PASSORD },
-    body: JSON.stringify({ dato, tid: tid || '19:00', lag, turnering })
+    body: JSON.stringify({ dato, tid: tid || '19:00', lag, turnering, publisertAv: innloggetNavn() })
   });
   if (res.ok) {
     document.getElementById('kamp-dato').value = '';
@@ -1418,6 +1422,39 @@ async function angreAvlysning(icalKey) {
   else visAlert('fotball', 'Noe gikk galt.', 'feil');
 }
 
+function redigerKamp(id, dato, tid, lag, turnering) {
+  const rad = document.getElementById('kamp-rad-' + id);
+  if (!rad) return;
+  rad.innerHTML = `
+    <div style="flex:1;display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;padding:0.25rem 0;">
+      <input id="red-dato-${id}" type="date" value="${dato}" style="border:1.5px solid var(--kant);border-radius:8px;padding:0.35rem 0.6rem;font-size:0.88rem;font-family:inherit;" />
+      <input id="red-tid-${id}" type="time" value="${tid}" style="border:1.5px solid var(--kant);border-radius:8px;padding:0.35rem 0.6rem;font-size:0.88rem;font-family:inherit;width:100px;" />
+      <input id="red-lag-${id}" type="text" value="${lag.replace(/"/g,'&quot;')}" placeholder="Kamptittel" style="border:1.5px solid var(--kant);border-radius:8px;padding:0.35rem 0.6rem;font-size:0.88rem;font-family:inherit;flex:1;min-width:160px;" />
+      <input id="red-tur-${id}" type="text" value="${turnering.replace(/"/g,'&quot;')}" placeholder="Turnering / klasse" style="border:1.5px solid var(--kant);border-radius:8px;padding:0.35rem 0.6rem;font-size:0.88rem;font-family:inherit;flex:1;min-width:130px;" />
+    </div>
+    <div style="display:flex;gap:0.5rem;margin-left:0.5rem;">
+      <button onclick="lagreKampEndring('${id}')" style="background:var(--grønn);color:#fff;border:none;border-radius:8px;padding:0.35rem 0.9rem;font-size:0.85rem;font-weight:700;cursor:pointer;">Lagre</button>
+      <button onclick="renderKamper()" style="background:none;border:1.5px solid var(--kant);border-radius:8px;padding:0.35rem 0.8rem;font-size:0.85rem;cursor:pointer;color:var(--grå);">Avbryt</button>
+    </div>`;
+  rad.style.flexWrap = 'wrap';
+  rad.style.gap = '0.5rem';
+}
+
+async function lagreKampEndring(id) {
+  const dato = document.getElementById('red-dato-' + id).value;
+  const tid  = document.getElementById('red-tid-' + id).value;
+  const lag  = document.getElementById('red-lag-' + id).value.trim();
+  const turnering = document.getElementById('red-tur-' + id).value.trim();
+  if (!dato || !lag) { alert('Fyll inn dato og kamptittel.'); return; }
+  const res = await fetch(API_BASE + '/fotball-kamper/' + id, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Admin-Password': PASSORD },
+    body: JSON.stringify({ dato, tid: tid || '19:00', lag, turnering })
+  });
+  if (res.ok) { visAlert('fotball', 'Kamp oppdatert!', 'suksess'); await renderKamper(); }
+  else visAlert('fotball', 'Feil ved lagring.', 'feil');
+}
+
 async function slettKamp(id) {
   if (!confirm('Slett denne kampen?')) return;
   const res = await fetch(API_BASE + '/fotball-kamper/' + id, {
@@ -1446,7 +1483,7 @@ async function renderKamper() {
       const passert = k.dato < idag;
       const avlyst = k.avlyst === true;
       html += `
-      <div class="kamp-rad" style="${passert ? 'opacity:0.5;' : ''}${avlyst ? 'background:#fff7f7;border-left:3px solid #ef4444;' : ''}">
+      <div id="kamp-rad-${k.id}" class="kamp-rad" style="${passert ? 'opacity:0.5;' : ''}${avlyst ? 'background:#fff7f7;border-left:3px solid #ef4444;' : ''}">
         <div class="kamp-dato-boks" style="${avlyst ? 'background:#fee2e2;' : ''}">
           <span>${MNED[d.getMonth()].toUpperCase()}</span>
           <span>${d.getDate()}</span>
@@ -1457,7 +1494,11 @@ async function renderKamper() {
         </div>
         <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;justify-content:flex-end;">
           ${k.manuell
-            ? `<span style="background:#f3f4f6;color:var(--grå);padding:0.15rem 0.5rem;border-radius:4px;font-size:0.72rem;font-weight:600;">manuell</span>
+            ? `${k.publisertAv ? `<span style="color:#6b7280;font-size:0.75rem;">👤 ${k.publisertAv}</span>` : ''}
+               <span style="background:#f3f4f6;color:var(--grå);padding:0.15rem 0.5rem;border-radius:4px;font-size:0.72rem;font-weight:600;">manuell</span>
+               <button onclick="redigerKamp('${k.id}','${k.dato}','${k.tid}',${JSON.stringify(k.lag)},${JSON.stringify(k.turnering||'')})" style="background:none;border:none;cursor:pointer;color:#6b7280;padding:0.25rem;" title="Rediger">
+                 <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+               </button>
                <button onclick="slettKamp('${k.id}')" style="background:none;border:none;cursor:pointer;color:#ef4444;padding:0.25rem;" title="Slett">
                  <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
                </button>`
