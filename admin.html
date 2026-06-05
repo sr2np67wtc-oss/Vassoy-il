@@ -1552,6 +1552,50 @@ async function renderLeieForesporsler() {
     el.innerHTML = data.map(f => {
       const tidspunkt = new Date(f.createdAt).toLocaleString('nb-NO', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
       const belopKr = f.belopKrevd ? Math.round(f.belopKrevd / 100).toLocaleString('nb-NO') : null;
+      const harPush = f.vippsRef && !f.vippsUrl;
+      const harWeblenke = !!f.vippsUrl;
+      const harBetaling = harPush || harWeblenke;
+
+      const betalingsSeksjon = harPush ? `
+        <div style="margin-bottom:1rem;padding:1rem;background:var(--grønn-lys);border-radius:10px;border:1px solid rgba(25,133,83,0.2);">
+          <div style="font-size:0.9rem;font-weight:600;">📱 Vipps-krav sendt til app (kr ${belopKr})</div>
+          <div style="font-size:0.8rem;color:var(--grå);margin-top:0.25rem;">Kunden mottar krav i Vipps-appen på ${f.tlf}</div>
+        </div>
+      ` : harWeblenke ? `
+        <div style="margin-bottom:1rem;padding:1rem;background:var(--grønn-lys);border-radius:10px;border:1px solid rgba(25,133,83,0.2);">
+          <div style="font-size:0.85rem;font-weight:600;margin-bottom:0.5rem;">🔗 Vipps-lenke opprettet (kr ${belopKr}):</div>
+          <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin-bottom:0.5rem;">
+            <input type="text" value="${f.vippsUrl}" readonly onclick="this.select()"
+              style="flex:1;min-width:160px;border:1px solid var(--kant);border-radius:7px;padding:0.4rem 0.6rem;font-size:0.78rem;background:#fff;cursor:text;" />
+            <button onclick="navigator.clipboard.writeText('${f.vippsUrl}').then(()=>{this.textContent='✓ Kopiert!';setTimeout(()=>this.textContent='Kopier',1800)})"
+              class="btn btn-kantlinje" style="font-size:0.8rem;padding:0.4rem 0.9rem;white-space:nowrap;">Kopier</button>
+          </div>
+          <button onclick="sendVippsEpost('${f.id}',this)" class="btn btn-kantlinje" style="font-size:0.82rem;padding:0.4rem 1rem;">
+            📧 Send lenke på e-post til ${f.epost}
+          </button>
+        </div>
+      ` : `
+        <div style="margin-bottom:1rem;padding:1rem;background:#fafafa;border-radius:10px;border:1px solid var(--kant);">
+          <div style="font-size:0.85rem;font-weight:600;margin-bottom:0.75rem;">Send Vipps-betaling</div>
+          <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin-bottom:0.5rem;">
+            <div style="position:relative;">
+              <span style="position:absolute;left:0.7rem;top:50%;transform:translateY(-50%);font-weight:600;color:var(--grå);font-size:0.9rem;">kr</span>
+              <input type="number" id="leie-belop-${f.id}" placeholder="Beløp (f.eks. 2500)" min="1"
+                style="padding:0.5rem 0.75rem 0.5rem 2.3rem;border:1px solid var(--kant);border-radius:8px;font-size:0.95rem;width:185px;" />
+            </div>
+          </div>
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+            <button onclick="sendVippsPush('${f.id}',this)" class="btn btn-grønn" style="padding:0.5rem 1.15rem;font-size:0.9rem;">
+              📱 Send til Vipps-app
+            </button>
+            <button onclick="opprettVippsWeblenke('${f.id}',this)" class="btn btn-kantlinje" style="padding:0.5rem 1.15rem;font-size:0.9rem;">
+              🔗 Opprett weblenke
+            </button>
+          </div>
+          <p style="font-size:0.78rem;color:var(--grå);margin-top:0.5rem;">«Send til Vipps-app» sender krav direkte til kundens telefon (${f.tlf}).</p>
+        </div>
+      `;
+
       return `
         <div class="session-rad" style="padding:1.25rem 1.5rem;margin-bottom:1rem;">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:1rem;">
@@ -1569,30 +1613,18 @@ async function renderLeieForesporsler() {
             </span>
           </div>
 
-          ${f.vippsUrl ? `
-            <div style="margin-bottom:1rem;padding:1rem;background:var(--grønn-lys);border-radius:10px;border:1px solid rgba(25,133,83,0.2);">
-              <div style="font-size:0.85rem;font-weight:600;margin-bottom:0.5rem;">✅ Vipps-lenke opprettet (kr ${belopKr}):</div>
-              <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
-                <input type="text" value="${f.vippsUrl}" readonly onclick="this.select()"
-                  style="flex:1;min-width:200px;border:1px solid var(--kant);border-radius:7px;padding:0.4rem 0.6rem;font-size:0.8rem;background:#fff;cursor:text;" />
-                <button onclick="navigator.clipboard.writeText('${f.vippsUrl}').then(()=>{this.textContent='✓ Kopiert!';setTimeout(()=>this.textContent='Kopier',1800)})"
-                  class="btn btn-kantlinje" style="font-size:0.8rem;padding:0.4rem 0.9rem;">Kopier</button>
-              </div>
-            </div>
-          ` : `
-            <div style="margin-bottom:1rem;padding:1rem;background:#fafafa;border-radius:10px;border:1px solid var(--kant);">
-              <div style="font-size:0.85rem;font-weight:600;margin-bottom:0.75rem;">Opprett Vipps-betalingslenke</div>
-              <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
-                <div style="position:relative;">
-                  <span style="position:absolute;left:0.7rem;top:50%;transform:translateY(-50%);font-weight:600;color:var(--grå);font-size:0.9rem;">kr</span>
-                  <input type="number" id="leie-belop-${f.id}" placeholder="Beløp (f.eks. 2500)" min="1"
-                    style="padding:0.5rem 0.75rem 0.5rem 2.3rem;border:1px solid var(--kant);border-radius:8px;font-size:0.95rem;width:190px;" />
-                </div>
-                <button onclick="opprettVippsLeie('${f.id}',this)" class="btn btn-grønn" style="padding:0.5rem 1.25rem;">Opprett Vipps-lenke</button>
-              </div>
-              <p style="font-size:0.78rem;color:var(--grå);margin-top:0.5rem;">Kopier lenken og send den til kunden via SMS eller e-post.</p>
-            </div>
-          `}
+          ${betalingsSeksjon}
+
+          <!-- Dialogboks -->
+          <div style="margin-bottom:1rem;padding:1rem;background:#f8f8f8;border-radius:10px;border:1px solid var(--kant);">
+            <div style="font-size:0.85rem;font-weight:600;margin-bottom:0.5rem;">✉️ Send melding til kunden</div>
+            <textarea id="leie-msg-${f.id}" rows="3" placeholder="Skriv melding til ${f.navn}..."
+              style="width:100%;box-sizing:border-box;border:1px solid var(--kant);border-radius:8px;padding:0.5rem 0.75rem;font-size:0.88rem;resize:vertical;font-family:inherit;"></textarea>
+            <button onclick="sendLeieDialogMelding('${f.id}','${f.epost}',this)" class="btn btn-kantlinje"
+              style="margin-top:0.5rem;font-size:0.85rem;padding:0.4rem 1rem;">
+              📤 Send e-post til ${f.epost}
+            </button>
+          </div>
 
           <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
             ${f.status !== 'behandlet'
@@ -1608,7 +1640,27 @@ async function renderLeieForesporsler() {
   }
 }
 
-async function opprettVippsLeie(id, btn) {
+async function sendVippsPush(id, btn) {
+  const inp = document.getElementById('leie-belop-' + id);
+  const belopKr = parseInt(inp ? inp.value : '');
+  if (!belopKr || belopKr < 1) { alert('Fyll inn et gyldig beløp i kroner.'); return; }
+  const orgTekst = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Sender...';
+  try {
+    const r = await fetch(API_BASE + '/leie-foresporsler/' + id + '/vipps-push', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': PASSORD },
+      body: JSON.stringify({ belopKr })
+    });
+    if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Ukjent feil'); }
+    await renderLeieForesporsler();
+  } catch (e) {
+    btn.disabled = false; btn.textContent = orgTekst;
+    alert('Feil: ' + e.message);
+  }
+}
+
+async function opprettVippsWeblenke(id, btn) {
   const inp = document.getElementById('leie-belop-' + id);
   const belopKr = parseInt(inp ? inp.value : '');
   if (!belopKr || belopKr < 1) { alert('Fyll inn et gyldig beløp i kroner.'); return; }
@@ -1624,7 +1676,46 @@ async function opprettVippsLeie(id, btn) {
     await renderLeieForesporsler();
   } catch (e) {
     btn.disabled = false; btn.textContent = orgTekst;
-    alert('Feil ved oppretting av Vipps-lenke: ' + e.message);
+    alert('Feil: ' + e.message);
+  }
+}
+
+async function sendVippsEpost(id, btn) {
+  const orgTekst = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Sender...';
+  try {
+    const r = await fetch(API_BASE + '/leie-foresporsler/' + id + '/send-vipps-epost', {
+      method: 'POST',
+      headers: { 'X-Admin-Password': PASSORD }
+    });
+    if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Ukjent feil'); }
+    btn.textContent = '✓ Sendt!';
+    setTimeout(() => { btn.disabled = false; btn.textContent = orgTekst; }, 3000);
+  } catch (e) {
+    btn.disabled = false; btn.textContent = orgTekst;
+    alert('Feil: ' + e.message);
+  }
+}
+
+async function sendLeieDialogMelding(id, epost, btn) {
+  const textarea = document.getElementById('leie-msg-' + id);
+  const melding = textarea ? textarea.value.trim() : '';
+  if (!melding) { alert('Skriv en melding først.'); return; }
+  const orgTekst = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Sender...';
+  try {
+    const r = await fetch(API_BASE + '/leie-foresporsler/' + id + '/send-melding', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': PASSORD },
+      body: JSON.stringify({ melding })
+    });
+    if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Ukjent feil'); }
+    if (textarea) textarea.value = '';
+    btn.textContent = '✓ Sendt til ' + epost;
+    setTimeout(() => { btn.disabled = false; btn.textContent = orgTekst; }, 3000);
+  } catch (e) {
+    btn.disabled = false; btn.textContent = orgTekst;
+    alert('Feil: ' + e.message);
   }
 }
 
