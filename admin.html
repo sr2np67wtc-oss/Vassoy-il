@@ -624,8 +624,61 @@
     <div id="seksjon-leie" style="display:none;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;">
         <h2 style="font-size:1.4rem;font-weight:700;margin:0;">🏠 Leieforespørsler</h2>
-        <button onclick="renderLeieForesporsler()" class="btn btn-kantlinje" style="font-size:0.85rem;">↻ Oppdater</button>
+        <div style="display:flex;gap:0.5rem;">
+          <button onclick="toggleNyLeie()" class="btn btn-grønn" style="font-size:0.85rem;">+ Ny bestilling</button>
+          <button onclick="renderLeieForesporsler()" class="btn btn-kantlinje" style="font-size:0.85rem;">↻ Oppdater</button>
+        </div>
       </div>
+
+      <!-- Manuell registreringsskjema -->
+      <div id="ny-leie-skjema" style="display:none;margin-bottom:2rem;">
+        <div class="kort" style="padding:1.5rem;">
+          <h3 style="font-size:1rem;font-weight:700;margin-bottom:1.25rem;">Registrer bestilling manuelt</h3>
+          <div class="skjema-rad">
+            <div class="skjema-gruppe">
+              <label for="leie-ny-navn">Navn *</label>
+              <input type="text" id="leie-ny-navn" placeholder="Fullt navn" />
+            </div>
+            <div class="skjema-gruppe">
+              <label for="leie-ny-tlf">Telefon *</label>
+              <input type="tel" id="leie-ny-tlf" placeholder="12345678" />
+            </div>
+          </div>
+          <div class="skjema-gruppe">
+            <label for="leie-ny-epost">E-post *</label>
+            <input type="email" id="leie-ny-epost" placeholder="epost@eksempel.no" />
+          </div>
+          <div class="skjema-rad">
+            <div class="skjema-gruppe">
+              <label for="leie-ny-type">Type arrangement *</label>
+              <select id="leie-ny-type">
+                <option value="Bursdag">Bursdag</option>
+                <option value="Konfirmasjon">Konfirmasjon</option>
+                <option value="Jubileum">Jubileum</option>
+                <option value="Annet selskapelig">Annet selskapelig</option>
+              </select>
+            </div>
+            <div class="skjema-gruppe">
+              <label for="leie-ny-gjester">Ca. antall gjester</label>
+              <input type="text" id="leie-ny-gjester" placeholder="F.eks. 40" />
+            </div>
+          </div>
+          <div class="skjema-gruppe">
+            <label for="leie-ny-dato">Dato *</label>
+            <input type="text" id="leie-ny-dato" placeholder="F.eks. lørdag 15. august" />
+          </div>
+          <div class="skjema-gruppe">
+            <label for="leie-ny-melding">Merknader</label>
+            <textarea id="leie-ny-melding" rows="2" placeholder="Eventuelle tilleggsopplysninger..." style="width:100%;box-sizing:border-box;border:1px solid var(--kant);border-radius:8px;padding:0.5rem 0.75rem;font-size:0.9rem;font-family:inherit;resize:vertical;"></textarea>
+          </div>
+          <div style="display:flex;gap:0.75rem;margin-top:0.5rem;">
+            <button onclick="lagreNyLeie(this)" class="btn btn-grønn">Lagre bestilling</button>
+            <button onclick="toggleNyLeie()" class="btn btn-kantlinje">Avbryt</button>
+          </div>
+          <div id="leie-ny-feil" class="alert alert-feil" style="margin-top:0.75rem;"></div>
+        </div>
+      </div>
+
       <div id="leie-liste"><p style="color:var(--grå);">Laster...</p></div>
     </div><!-- /seksjon-leie -->
 
@@ -1588,11 +1641,8 @@ async function renderLeieForesporsler() {
             <button onclick="sendVippsPush('${f.id}',this)" class="btn btn-grønn" style="padding:0.5rem 1.15rem;font-size:0.9rem;">
               📱 Send til Vipps-app
             </button>
-            <button onclick="opprettVippsWeblenke('${f.id}',this)" class="btn btn-kantlinje" style="padding:0.5rem 1.15rem;font-size:0.9rem;">
-              🔗 Opprett weblenke
-            </button>
           </div>
-          <p style="font-size:0.78rem;color:var(--grå);margin-top:0.5rem;">«Send til Vipps-app» sender krav direkte til kundens telefon (${f.tlf}).</p>
+          <p style="font-size:0.78rem;color:var(--grå);margin-top:0.5rem;">Sender krav direkte til kundens Vipps-app på ${f.tlf}.</p>
         </div>
       `;
 
@@ -1626,11 +1676,12 @@ async function renderLeieForesporsler() {
             </button>
           </div>
 
-          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
             ${f.status !== 'behandlet'
               ? `<button onclick="markerLeieStatus('${f.id}','behandlet')" class="btn btn-kantlinje" style="font-size:0.85rem;padding:0.4rem 1rem;">✅ Merk som behandlet</button>`
               : `<button onclick="markerLeieStatus('${f.id}','ny')" class="btn btn-kantlinje" style="font-size:0.85rem;padding:0.4rem 1rem;">↩ Merk som ny</button>`
             }
+            <button onclick="slettLeie('${f.id}','${f.navn}',this)" class="btn" style="font-size:0.85rem;padding:0.4rem 1rem;margin-left:auto;color:#ef4444;border:1px solid #fecaca;background:#fff5f5;">🗑 Slett</button>
           </div>
         </div>
       `;
@@ -1716,6 +1767,68 @@ async function sendLeieDialogMelding(id, epost, btn) {
   } catch (e) {
     btn.disabled = false; btn.textContent = orgTekst;
     alert('Feil: ' + e.message);
+  }
+}
+
+function toggleNyLeie() {
+  const el = document.getElementById('ny-leie-skjema');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+async function lagreNyLeie(btn) {
+  const navn    = document.getElementById('leie-ny-navn').value.trim();
+  const tlf     = document.getElementById('leie-ny-tlf').value.trim();
+  const epost   = document.getElementById('leie-ny-epost').value.trim();
+  const type    = document.getElementById('leie-ny-type').value;
+  const gjester = document.getElementById('leie-ny-gjester').value.trim() || '–';
+  const dato    = document.getElementById('leie-ny-dato').value.trim();
+  const melding = document.getElementById('leie-ny-melding').value.trim();
+  const feilEl  = document.getElementById('leie-ny-feil');
+
+  if (!navn || !tlf || !epost || !dato) {
+    feilEl.textContent = 'Fyll ut navn, telefon, e-post og dato.';
+    feilEl.classList.add('synlig');
+    return;
+  }
+  feilEl.classList.remove('synlig');
+
+  const orgTekst = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Lagrer...';
+  try {
+    const r = await fetch(API_BASE + '/leie-foresporsel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ navn, tlf, epost, type, gjester, dato, melding })
+    });
+    if (!r.ok) throw new Error('Serverfeil');
+    ['leie-ny-navn','leie-ny-tlf','leie-ny-epost','leie-ny-gjester','leie-ny-dato','leie-ny-melding'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    document.getElementById('ny-leie-skjema').style.display = 'none';
+    await renderLeieForesporsler();
+  } catch (e) {
+    feilEl.textContent = 'Feil ved lagring: ' + e.message;
+    feilEl.classList.add('synlig');
+  } finally {
+    btn.disabled = false; btn.textContent = orgTekst;
+  }
+}
+
+async function slettLeie(id, navn, btn) {
+  if (!confirm('Slett forespørselen fra ' + navn + '? Dette kan ikke angres.')) return;
+  const orgTekst = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Sletter...';
+  try {
+    const r = await fetch(API_BASE + '/leie-foresporsler/' + id, {
+      method: 'DELETE',
+      headers: { 'X-Admin-Password': PASSORD }
+    });
+    if (!r.ok) throw new Error();
+    await renderLeieForesporsler();
+  } catch {
+    btn.disabled = false; btn.textContent = orgTekst;
+    alert('Feil ved sletting.');
   }
 }
 
