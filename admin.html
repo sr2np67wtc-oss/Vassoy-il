@@ -681,6 +681,28 @@
       </div>
 
       <div id="leie-liste"><p style="color:var(--grå);">Laster...</p></div>
+
+      <!-- Blokker datoer -->
+      <div class="kort" style="margin-top:2rem;padding:1.5rem;">
+        <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem;">🔒 Blokker datoer manuelt</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start;">
+          <div>
+            <div id="blokk-picker" style="border:1px solid var(--kant);border-radius:12px;padding:1rem;background:#fafafa;margin-bottom:0.75rem;"></div>
+            <input type="hidden" id="blokk-dato" />
+            <div class="skjema-gruppe" style="margin-bottom:0.75rem;">
+              <label for="blokk-grunn">Grunn (valgfritt)</label>
+              <input type="text" id="blokk-grunn" placeholder="F.eks. vedlikehold, internt arrangement..." />
+            </div>
+            <button onclick="blokkerDato(this)" class="btn btn-grønn" style="width:100%;">🔒 Blokker valgte datoer</button>
+            <div id="blokk-feil" class="alert alert-feil" style="margin-top:0.5rem;"></div>
+          </div>
+          <div>
+            <p style="font-size:0.82rem;font-weight:600;color:var(--grå);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.05em;">Blokkerte datoer</p>
+            <div id="blokk-liste"><p style="font-size:0.85rem;color:var(--grå);">Laster...</p></div>
+          </div>
+        </div>
+      </div>
+
     </div><!-- /seksjon-leie -->
 
   </div>
@@ -789,7 +811,7 @@ function byttSeksjon(seksjon) {
     document.getElementById('seksjon-btn-' + s).classList.toggle('aktiv', s === seksjon);
   });
   if (seksjon === 'fotball') { renderKamper(); renderReservasjoner(); lastLigatabellAdmin(); lastNifsTeams(); }
-  if (seksjon === 'leie') { renderLeieForesporsler(); }
+  if (seksjon === 'leie') { renderLeieForesporsler(); renderBlokkPicker(); lastBlokkerteAdmin(); }
 }
 
 // --- FANER ---
@@ -1847,6 +1869,131 @@ function leieNesteManed() {
   renderLeieAdminPicker();
 }
 // ===== SLUTT LEIE ADMIN KALENDER =====
+
+// ===== BLOKKER DATOER =====
+const BLOKK_MND = ['Januar','Februar','Mars','April','Mai','Juni','Juli','August','September','Oktober','November','Desember'];
+const BLOKK_DAGER = ['Man','Tir','Ons','Tor','Fre','Lør','Søn'];
+let _blokkValgte = [];
+let _blokkVisManed = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+
+function renderBlokkPicker() {
+  const cont = document.getElementById('blokk-picker');
+  if (!cont) return;
+  const today = new Date().toISOString().slice(0,10);
+  const aar = _blokkVisManed.getFullYear();
+  const man = _blokkVisManed.getMonth();
+  const forsteDag = new Date(aar, man, 1);
+  const antallDager = new Date(aar, man + 1, 0).getDate();
+  let offset = forsteDag.getDay() - 1;
+  if (offset < 0) offset = 6;
+
+  let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
+    <button type="button" onclick="blokkForrige()" style="border:1px solid var(--kant);background:#fff;border-radius:8px;padding:0.3rem 0.75rem;cursor:pointer;font-size:1.1rem;line-height:1;">‹</button>
+    <span style="font-weight:700;font-size:0.9rem;">${BLOKK_MND[man]} ${aar}</span>
+    <button type="button" onclick="blokkNeste()" style="border:1px solid var(--kant);background:#fff;border-radius:8px;padding:0.3rem 0.75rem;cursor:pointer;font-size:1.1rem;line-height:1;">›</button>
+  </div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;">`;
+
+  for (const d of BLOKK_DAGER) {
+    html += `<div style="text-align:center;font-size:0.6rem;font-weight:700;color:var(--grå);padding-bottom:0.3rem;">${d}</div>`;
+  }
+  for (let i = 0; i < offset; i++) html += '<div></div>';
+  for (let dag = 1; dag <= antallDager; dag++) {
+    const iso = `${aar}-${String(man+1).padStart(2,'0')}-${String(dag).padStart(2,'0')}`;
+    const valgt = _blokkValgte.includes(iso);
+    let bg = valgt ? '#ef4444' : '#f3f4f6';
+    let farge = valgt ? '#fff' : '#111';
+    let fw = valgt ? '700' : '400';
+    html += `<div onclick="blokkVelgDag('${iso}')" style="text-align:center;padding:0.35rem 0;font-size:0.8rem;font-weight:${fw};background:${bg};color:${farge};cursor:pointer;border-radius:6px;">${dag}</div>`;
+  }
+  html += '</div>';
+  if (_blokkValgte.length > 0) {
+    html += `<div style="margin-top:0.6rem;padding:0.5rem 0.7rem;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;font-size:0.8rem;">
+      <strong>Valgte:</strong> ${_blokkValgte.slice().sort().join(', ')}
+    </div>`;
+  } else {
+    html += `<p style="margin-top:0.4rem;font-size:0.78rem;color:var(--grå);">Klikk datoer du vil blokkere.</p>`;
+  }
+  document.getElementById('blokk-dato').value = _blokkValgte.slice().sort().join(',');
+  cont.innerHTML = html;
+}
+function blokkVelgDag(iso) {
+  const idx = _blokkValgte.indexOf(iso);
+  if (idx >= 0) _blokkValgte.splice(idx, 1); else _blokkValgte.push(iso);
+  renderBlokkPicker();
+}
+function blokkForrige() { _blokkVisManed = new Date(_blokkVisManed.getFullYear(), _blokkVisManed.getMonth()-1,1); renderBlokkPicker(); }
+function blokkNeste()   { _blokkVisManed = new Date(_blokkVisManed.getFullYear(), _blokkVisManed.getMonth()+1,1); renderBlokkPicker(); }
+
+async function blokkerDato(btn) {
+  const datoer = _blokkValgte.slice().sort();
+  const grunn = document.getElementById('blokk-grunn').value.trim();
+  const feilEl = document.getElementById('blokk-feil');
+  feilEl.classList.remove('synlig');
+  if (datoer.length === 0) { feilEl.textContent = 'Velg minst én dato.'; feilEl.classList.add('synlig'); return; }
+  const orgTekst = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Blokkerer...';
+  try {
+    await Promise.all(datoer.map(dato =>
+      fetch(API_BASE + '/leie-blokkert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Admin-Password': PASSORD },
+        body: JSON.stringify({ dato, grunn })
+      })
+    ));
+    _blokkValgte = [];
+    document.getElementById('blokk-grunn').value = '';
+    renderBlokkPicker();
+    await lastBlokkerteAdmin();
+  } catch(e) {
+    feilEl.textContent = 'Feil: ' + e.message; feilEl.classList.add('synlig');
+  } finally {
+    btn.disabled = false; btn.textContent = orgTekst;
+  }
+}
+
+async function fjernBlokk(id, btn) {
+  if (!confirm('Fjerne blokkeringen?')) return;
+  const orgTekst = btn.textContent;
+  btn.disabled = true; btn.textContent = '...';
+  try {
+    await fetch(API_BASE + '/leie-blokkert/' + id, {
+      method: 'DELETE',
+      headers: { 'X-Admin-Password': PASSORD }
+    });
+    await lastBlokkerteAdmin();
+  } finally {
+    btn.disabled = false; btn.textContent = orgTekst;
+  }
+}
+
+function norskDatoBlokk(iso) {
+  const [y,m,d] = iso.split('-').map(Number);
+  const dt = new Date(y,m-1,d);
+  const dagN = ['søn','man','tir','ons','tor','fre','lør'][dt.getDay()];
+  const manN = ['jan','feb','mar','apr','mai','jun','jul','aug','sep','okt','nov','des'][m-1];
+  return `${dagN} ${d}. ${manN} ${y}`;
+}
+
+async function lastBlokkerteAdmin() {
+  const listEl = document.getElementById('blokk-liste');
+  if (!listEl) return;
+  try {
+    const r = await fetch(API_BASE + '/leie-blokkert', { headers: { 'X-Admin-Password': PASSORD } });
+    const data = await r.json();
+    if (!data.length) { listEl.innerHTML = '<p style="font-size:0.85rem;color:var(--grå);">Ingen blokkerte datoer.</p>'; return; }
+    listEl.innerHTML = data.map(b => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0.5rem 0.6rem;border:1px solid #fecaca;border-radius:8px;margin-bottom:0.4rem;background:#fef2f2;">
+        <div>
+          <span style="font-size:0.85rem;font-weight:600;">${norskDatoBlokk(b.dato)}</span>
+          ${b.grunn ? `<br><span style="font-size:0.75rem;color:var(--grå);">${b.grunn}</span>` : ''}
+        </div>
+        <button onclick="fjernBlokk('${b.id}',this)" style="background:none;border:1px solid #fca5a5;color:#ef4444;border-radius:6px;padding:0.2rem 0.5rem;cursor:pointer;font-size:0.78rem;white-space:nowrap;">Fjern</button>
+      </div>`).join('');
+  } catch {
+    listEl.innerHTML = '<p style="font-size:0.85rem;color:var(--grå);">Kunne ikke laste.</p>';
+  }
+}
+// ===== SLUTT BLOKKER DATOER =====
 
 function toggleNyLeie() {
   const el = document.getElementById('ny-leie-skjema');
