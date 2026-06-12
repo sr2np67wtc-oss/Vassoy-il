@@ -264,6 +264,7 @@
       <button class="seksjon-btn aktiv" id="seksjon-btn-spinning" onclick="byttSeksjon('spinning')">🚴 Spinning</button>
       <button class="seksjon-btn" id="seksjon-btn-fotball" onclick="byttSeksjon('fotball')">⚽ Fotball</button>
       <button class="seksjon-btn" id="seksjon-btn-leie" onclick="byttSeksjon('leie')" style="display:none;">🏠 Leie</button>
+      <button class="seksjon-btn" id="seksjon-btn-diskgolf" onclick="byttSeksjon('diskgolf')" style="display:none;">🥏 Disc Golf</button>
     </div>
 
     <!-- SEKSJON: SPINNING -->
@@ -705,6 +706,45 @@
 
     </div><!-- /seksjon-leie -->
 
+    <!-- SEKSJON: DISC GOLF -->
+    <div id="seksjon-diskgolf" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;">
+        <h2 style="font-size:1.5rem;font-weight:700;">🥏 Disc Golf – Rekordliste</h2>
+        <button onclick="toggleNyDgRunde()" class="btn btn-primær" style="font-size:0.85rem;">+ Ny runde</button>
+      </div>
+
+      <!-- Skjema ny runde -->
+      <div id="ny-dg-skjema" style="display:none;background:#f9fafb;border:1px solid var(--kant);border-radius:14px;padding:1.5rem;margin-bottom:2rem;">
+        <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:1.25rem;">Registrer runde</h3>
+        <div class="grid-2" style="gap:1rem;margin-bottom:1rem;">
+          <div>
+            <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem;">Spillernavn *</label>
+            <input type="text" id="dg-navn" placeholder="Fullt navn" style="width:100%;box-sizing:border-box;border:1px solid var(--kant);border-radius:8px;padding:0.5rem 0.75rem;font-size:0.95rem;" />
+          </div>
+          <div>
+            <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem;">Antall kast (totalt) *</label>
+            <input type="number" id="dg-score" placeholder="F.eks. 54" min="1" max="200" style="width:100%;box-sizing:border-box;border:1px solid var(--kant);border-radius:8px;padding:0.5rem 0.75rem;font-size:0.95rem;" />
+          </div>
+          <div>
+            <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem;">Dato *</label>
+            <input type="date" id="dg-dato" style="width:100%;box-sizing:border-box;border:1px solid var(--kant);border-radius:8px;padding:0.5rem 0.75rem;font-size:0.95rem;" />
+          </div>
+          <div>
+            <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.3rem;">Merknad (valgfritt)</label>
+            <input type="text" id="dg-merknad" placeholder="F.eks. 18-hull, gunstig vind..." style="width:100%;box-sizing:border-box;border:1px solid var(--kant);border-radius:8px;padding:0.5rem 0.75rem;font-size:0.95rem;" />
+          </div>
+        </div>
+        <p id="dg-feil" class="feil-tekst"></p>
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+          <button onclick="lagreDgRunde(this)" class="btn btn-primær" style="font-size:0.85rem;">Lagre runde</button>
+          <button onclick="toggleNyDgRunde()" class="btn btn-kantlinje" style="font-size:0.85rem;">Avbryt</button>
+        </div>
+      </div>
+
+      <!-- Liste -->
+      <div id="dg-liste"><p style="color:var(--grå);">Laster...</p></div>
+    </div><!-- /seksjon-diskgolf -->
+
   </div>
 </div>
 
@@ -717,7 +757,7 @@ function innloggetNavn() {
 
 const BRUKERE = {
   'andreas':  { navn: 'Andreas',  passord: 'Emmcri75',  rolle: 'full' },
-  'torerik':  { navn: 'Tor Erik', passord: 'Bane2025',  rolle: 'fotball' },
+  'torerik':  { navn: 'Tor Erik', passord: 'Bane2025',  rolle: 'fotball-diskgolf' },
   'kjetil':   { navn: 'Kjetil',   passord: 'Felt2025',  rolle: 'fotball-leie' },
 };
 const PASSORD = 'Emmcri75'; // server-side API-passord
@@ -769,13 +809,17 @@ function applyRolle(rolle, navn) {
   document.getElementById('topbar-bruker-namn').textContent = 'Hei, ' + navn;
   if (rolle === 'full') {
     document.getElementById('seksjon-btn-leie').style.display = 'inline-flex';
-  } else if (rolle === 'fotball' || rolle === 'fotball-leie') {
+    document.getElementById('seksjon-btn-diskgolf').style.display = 'inline-flex';
+  } else if (rolle === 'fotball' || rolle === 'fotball-leie' || rolle === 'fotball-diskgolf') {
     document.getElementById('seksjon-btn-spinning').style.display = 'none';
     document.getElementById('seksjon-spinning').style.display = 'none';
     document.getElementById('seksjon-fotball').style.display = 'block';
     document.getElementById('seksjon-btn-fotball').classList.add('aktiv');
     if (rolle === 'fotball-leie') {
       document.getElementById('seksjon-btn-leie').style.display = 'inline-flex';
+    }
+    if (rolle === 'fotball-diskgolf') {
+      document.getElementById('seksjon-btn-diskgolf').style.display = 'inline-flex';
     }
   }
 }
@@ -795,6 +839,7 @@ function loggInn() {
     else {
       renderKamper(); renderReservasjoner(); lastLigatabellAdmin(); lastNifsTeams();
       if (konto.rolle === 'fotball-leie') { renderLeieForesporsler(); renderBlokkPicker(); lastBlokkerteAdmin(); }
+      if (konto.rolle === 'fotball-diskgolf') { renderDgListe(); }
     }
   } else {
     feil.classList.add('synlig');
@@ -812,12 +857,15 @@ function loggUt() {
 
 // --- SEKSJONER ---
 function byttSeksjon(seksjon) {
-  ['spinning','fotball','leie'].forEach(s => {
-    document.getElementById('seksjon-' + s).style.display = s === seksjon ? 'block' : 'none';
-    document.getElementById('seksjon-btn-' + s).classList.toggle('aktiv', s === seksjon);
+  ['spinning','fotball','leie','diskgolf'].forEach(s => {
+    const el = document.getElementById('seksjon-' + s);
+    const btn = document.getElementById('seksjon-btn-' + s);
+    if (el) el.style.display = s === seksjon ? 'block' : 'none';
+    if (btn) btn.classList.toggle('aktiv', s === seksjon);
   });
   if (seksjon === 'fotball') { renderKamper(); renderReservasjoner(); lastLigatabellAdmin(); lastNifsTeams(); }
   if (seksjon === 'leie') { lastLeieReserverte().then(renderLeieAdminPicker); renderLeieForesporsler(); renderBlokkPicker(); lastBlokkerteAdmin(); }
+  if (seksjon === 'diskgolf') { renderDgListe(); }
 }
 
 // --- FANER ---
@@ -2073,6 +2121,111 @@ async function lastBlokkerteAdmin() {
 }
 // ===== SLUTT BLOKKER DATOER =====
 
+// ===== DISC GOLF =====
+function norskDatoDg(iso) {
+  if (!iso) return '';
+  const [y,m,d] = iso.split('-').map(Number);
+  const dt = new Date(y,m-1,d);
+  const dagN = ['søn','man','tir','ons','tor','fre','lør'][dt.getDay()];
+  const manN = ['jan','feb','mar','apr','mai','jun','jul','aug','sep','okt','nov','des'][m-1];
+  return `${dagN} ${d}. ${manN} ${y}`;
+}
+
+function toggleNyDgRunde() {
+  const el = document.getElementById('ny-dg-skjema');
+  const aapen = el.style.display !== 'none';
+  el.style.display = aapen ? 'none' : 'block';
+  if (!aapen) {
+    document.getElementById('dg-dato').value = new Date().toISOString().slice(0,10);
+  }
+}
+
+async function lagreDgRunde(btn) {
+  const navn    = document.getElementById('dg-navn').value.trim();
+  const score   = parseInt(document.getElementById('dg-score').value, 10);
+  const dato    = document.getElementById('dg-dato').value;
+  const merknad = document.getElementById('dg-merknad').value.trim();
+  const feilEl  = document.getElementById('dg-feil');
+  feilEl.classList.remove('synlig');
+
+  if (!navn) { feilEl.textContent = 'Spillernavn er påkrevd.'; feilEl.classList.add('synlig'); return; }
+  if (!score || isNaN(score) || score < 1) { feilEl.textContent = 'Antall kast må være et positivt tall.'; feilEl.classList.add('synlig'); return; }
+  if (!dato) { feilEl.textContent = 'Dato er påkrevd.'; feilEl.classList.add('synlig'); return; }
+
+  const orgTekst = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Lagrer...';
+  try {
+    const r = await fetch(API_BASE + '/diskgolf-runde', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': PASSORD },
+      body: JSON.stringify({ spillernavn: navn, score, dato, merknad })
+    });
+    if (!r.ok) throw new Error('Serverfeil');
+    ['dg-navn','dg-score','dg-merknad'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('ny-dg-skjema').style.display = 'none';
+    await renderDgListe();
+  } catch(e) {
+    feilEl.textContent = 'Feil: ' + e.message; feilEl.classList.add('synlig');
+  } finally {
+    btn.disabled = false; btn.textContent = orgTekst;
+  }
+}
+
+async function slettDgRunde(id, btn) {
+  if (!confirm('Slette denne runden?')) return;
+  const orgTekst = btn.textContent;
+  btn.disabled = true; btn.textContent = '...';
+  try {
+    await fetch(API_BASE + '/diskgolf-runde/' + id, {
+      method: 'DELETE',
+      headers: { 'X-Admin-Password': PASSORD }
+    });
+    await renderDgListe();
+  } finally {
+    btn.disabled = false; btn.textContent = orgTekst;
+  }
+}
+
+async function renderDgListe() {
+  const listEl = document.getElementById('dg-liste');
+  if (!listEl) return;
+  try {
+    const r = await fetch(API_BASE + '/diskgolf-rekorder', { headers: { 'X-Admin-Password': PASSORD } });
+    const data = await r.json();
+    if (!data.length) { listEl.innerHTML = '<p style="color:var(--grå);">Ingen runder registrert ennå.</p>'; return; }
+    const medaljer = ['🥇','🥈','🥉'];
+    listEl.innerHTML = `
+      <table style="width:100%;border-collapse:collapse;font-size:0.9rem;">
+        <thead>
+          <tr style="border-bottom:2px solid var(--kant);text-align:left;">
+            <th style="padding:0.5rem 0.75rem;width:2.5rem;">#</th>
+            <th style="padding:0.5rem 0.75rem;">Spiller</th>
+            <th style="padding:0.5rem 0.75rem;text-align:center;">Kast</th>
+            <th style="padding:0.5rem 0.75rem;">Dato</th>
+            <th style="padding:0.5rem 0.75rem;">Merknad</th>
+            <th style="padding:0.5rem 0.75rem;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${data.map((r, i) => `
+          <tr style="border-bottom:1px solid var(--kant);${i < 3 ? 'background:#f0fdf4;' : ''}">
+            <td style="padding:0.6rem 0.75rem;font-weight:700;">${medaljer[i] || (i+1) + '.'}</td>
+            <td style="padding:0.6rem 0.75rem;font-weight:${i < 3 ? '700' : '400'};">${r.spillernavn}</td>
+            <td style="padding:0.6rem 0.75rem;text-align:center;font-weight:700;font-size:1.05rem;">${r.score}</td>
+            <td style="padding:0.6rem 0.75rem;color:var(--grå);font-size:0.82rem;">${norskDatoDg(r.dato)}</td>
+            <td style="padding:0.6rem 0.75rem;color:var(--grå);font-size:0.82rem;">${r.merknad || '–'}</td>
+            <td style="padding:0.6rem 0.75rem;">
+              <button onclick="slettDgRunde('${r.id}',this)" style="background:none;border:1px solid #fca5a5;color:#ef4444;border-radius:6px;padding:0.15rem 0.5rem;cursor:pointer;font-size:0.78rem;">Slett</button>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`;
+  } catch {
+    listEl.innerHTML = '<p style="color:var(--grå);">Kunne ikke laste.</p>';
+  }
+}
+// ===== SLUTT DISC GOLF =====
+
 function toggleNyLeie() {
   const el = document.getElementById('ny-leie-skjema');
   const aapen = el.style.display !== 'none';
@@ -2178,6 +2331,7 @@ window.addEventListener('DOMContentLoaded', () => {
         else {
           renderKamper(); renderReservasjoner(); lastLigatabellAdmin(); lastNifsTeams();
           if (konto.rolle === 'fotball-leie') { renderLeieForesporsler(); renderBlokkPicker(); lastBlokkerteAdmin(); }
+        if (konto.rolle === 'fotball-diskgolf') { renderDgListe(); }
         }
       }
     } catch (_) {}

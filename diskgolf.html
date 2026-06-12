@@ -185,6 +185,21 @@
 </section>
 
 
+<!-- ===================== TIDENES BESTE ===================== -->
+<section class="seksjon" style="background:#f9fafb;">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:2.5rem;">
+      <span class="chip">Statistikk</span>
+      <h2 style="font-size:clamp(1.75rem,4vw,2.5rem);font-weight:800;margin-top:0.75rem;">Tidenes beste runder</h2>
+      <p style="color:var(--grå);margin-top:0.5rem;">Lavest antall kast vinner. Oppdateres av Vassøy IL.</p>
+    </div>
+    <div id="dg-leaderboard" style="max-width:680px;margin:0 auto;">
+      <p style="text-align:center;color:var(--grå);">Laster...</p>
+    </div>
+  </div>
+</section>
+
+
 <!-- ===================== CALLOUT ===================== -->
 <section class="seksjon seksjon-grønn" style="text-align:center;">
   <div class="container">
@@ -239,5 +254,52 @@
 <!-- =================== SLUTT FOOTER =================== -->
 
 <script src="nav.js"></script>
+<script>
+(async function lastLeaderboard() {
+  const el = document.getElementById('dg-leaderboard');
+  if (!el) return;
+  try {
+    const r = await fetch('https://vassoy-il.replit.app/api/diskgolf-rekorder');
+    const data = await r.json();
+    if (!Array.isArray(data) || data.length === 0) {
+      el.innerHTML = '<p style="text-align:center;color:#6b7280;font-size:0.95rem;">Ingen runder registrert ennå – vær den første!</p>';
+      return;
+    }
+    const medaljer = ['🥇','🥈','🥉'];
+    const dagN = ['søn','man','tir','ons','tor','fre','lør'];
+    const manN = ['jan','feb','mar','apr','mai','jun','jul','aug','sep','okt','nov','des'];
+    function norskDato(iso) {
+      const [y,m,d] = iso.split('-').map(Number);
+      const dt = new Date(y,m-1,d);
+      return `${dagN[dt.getDay()]} ${d}. ${manN[m-1]} ${y}`;
+    }
+    el.innerHTML = data.map((rad, i) => {
+      const topp3 = i < 3;
+      const bg  = i === 0 ? 'linear-gradient(135deg,#fef9c3,#fef08a)'
+                : i === 1 ? 'linear-gradient(135deg,#f1f5f9,#e2e8f0)'
+                : i === 2 ? 'linear-gradient(135deg,#fff7ed,#fed7aa)'
+                : '#ffffff';
+      const kantFarge = i === 0 ? '#fbbf24' : i === 1 ? '#94a3b8' : i === 2 ? '#f97316' : '#e5e7eb';
+      return `
+        <div style="display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;border-radius:14px;border:1.5px solid ${kantFarge};background:${bg};margin-bottom:0.75rem;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+          <div style="font-size:${topp3 ? '1.8rem' : '1.1rem'};font-weight:900;min-width:2.5rem;text-align:center;color:#374151;">
+            ${medaljer[i] || (i+1) + '.'}
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:${topp3 ? '1.1rem' : '0.95rem'};font-weight:${topp3 ? '800' : '600'};color:#111827;">${rad.spillernavn}</div>
+            ${rad.merknad ? `<div style="font-size:0.78rem;color:#6b7280;margin-top:0.1rem;">${rad.merknad}</div>` : ''}
+            <div style="font-size:0.78rem;color:#9ca3af;margin-top:0.15rem;">${norskDato(rad.dato)}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:${topp3 ? '2rem' : '1.4rem'};font-weight:900;color:var(--grønn);line-height:1;">${rad.score}</div>
+            <div style="font-size:0.72rem;color:#6b7280;">kast</div>
+          </div>
+        </div>`;
+    }).join('');
+  } catch {
+    el.innerHTML = '<p style="text-align:center;color:#6b7280;">Kunne ikke laste statistikk.</p>';
+  }
+})();
+</script>
 </body>
 </html>
