@@ -296,6 +296,9 @@
     <div id="galleri-grid" style="columns:2;column-gap:0.75rem;line-height:0;">
       <div id="galleri-spinner" style="column-span:all;text-align:center;padding:3rem 0;color:rgba(255,255,255,0.4);font-size:1rem;">Laster bilder&#8230;</div>
     </div>
+    <div id="galleri-vis-mer" style="display:none;text-align:center;margin-top:2rem;">
+      <button onclick="toggleVisAlle()" style="background:transparent;border:2px solid var(--teal);color:var(--teal);padding:0.75rem 2rem;border-radius:999px;font-size:0.95rem;font-weight:700;cursor:pointer;letter-spacing:0.04em;transition:all 0.2s;" onmouseover="this.style.background='var(--teal)';this.style.color='#fff';" onmouseout="this.style.background='transparent';this.style.color='var(--teal)';">Se alle bilder &#8595;</button>
+    </div>
   </div>
 </section>
 
@@ -335,6 +338,46 @@
 (function() {
   var bilder = [];
   var aktivIndex = 0;
+  var INITIAL_COUNT = 8;
+  var visAlle = false;
+
+  function lagBildekort(b, i) {
+    var wrap = document.createElement('div');
+    wrap.className = 'galleri-bilde';
+    wrap.onclick = function(){ aapenLightbox(i); };
+    var img = document.createElement('img');
+    img.src = b.thumbnail;
+    img.alt = b.navn || 'Backyard bilde';
+    img.loading = 'lazy';
+    img.onload = function(){ img.classList.add('lastet'); };
+    wrap.appendChild(img);
+    return wrap;
+  }
+
+  function renderBilder() {
+    var grid = document.getElementById('galleri-grid');
+    var visAntall = visAlle ? bilder.length : Math.min(INITIAL_COUNT, bilder.length);
+    grid.innerHTML = '';
+    for (var i = 0; i < visAntall; i++) {
+      grid.appendChild(lagBildekort(bilder[i], i));
+    }
+    var btnWrap = document.getElementById('galleri-vis-mer');
+    if (btnWrap) {
+      btnWrap.style.display = bilder.length > INITIAL_COUNT ? 'block' : 'none';
+      var btn = btnWrap.querySelector('button');
+      if (btn) btn.textContent = visAlle
+        ? 'Vis færre bilder ↑'
+        : 'Se alle ' + bilder.length + ' bilder ↓';
+    }
+  }
+
+  window.toggleVisAlle = function() {
+    visAlle = !visAlle;
+    renderBilder();
+    if (!visAlle) {
+      document.getElementById('galleri').scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   fetch('https://vassoy-il.replit.app/api/backyard-bilder')
     .then(function(r){ return r.json(); })
@@ -345,19 +388,7 @@
         grid.innerHTML = '<p style="color:rgba(255,255,255,0.4);text-align:center;column-span:all;padding:2rem;">Ingen bilder funnet.</p>';
         return;
       }
-      grid.innerHTML = '';
-      bilder.forEach(function(b, i) {
-        var wrap = document.createElement('div');
-        wrap.className = 'galleri-bilde';
-        wrap.onclick = function(){ aapenLightbox(i); };
-        var img = document.createElement('img');
-        img.src = b.thumbnail;
-        img.alt = b.navn || 'Backyard bilde';
-        img.loading = 'lazy';
-        img.onload = function(){ img.classList.add('lastet'); };
-        wrap.appendChild(img);
-        grid.appendChild(wrap);
-      });
+      renderBilder();
     })
     .catch(function() {
       document.getElementById('galleri-grid').innerHTML =
