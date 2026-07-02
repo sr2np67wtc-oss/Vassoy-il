@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VM-kveld: Norge vs Brasil – Vassøy IL</title>
+  <meta name="description" content="Se VM-kampen Norge vs Brasil på storskjerm i idrettslokalet på Vassøy! Dørene åpner 21:30, kampstart 22:00. Familievennlig og alkoholfritt." />
+  <meta property="og:title" content="VM-kveld: Norge 🇳🇴 vs Brasil 🇧🇷 – Vassøy IL" />
+  <meta property="og:description" content="Se VM-kampen på storskjerm! Dørene åpner 21:30, kampstart 22:00. Kiosk, gratis inngang, alkoholfritt." />
+  <meta property="og:image" content="https://vassoy-il.no/bilder/logo.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="bilder/logo.png">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --norsk-rød: #EF2B2D;
+      --norsk-blå: #003087;
+      --norsk-hvit: #ffffff;
+      --brasiliansk-gul: #FFCC00;
+      --brasiliansk-grønn: #009C3B;
+      --mørk: #0a0f1e;
+      --kort-bg: rgba(255,255,255,0.06);
+      --kant: rgba(255,255,255,0.12);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--mørk);
+      color: #fff;
+      min-height: 100vh;
+    }
+
+    /* HERO */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem 1.5rem 3rem;
+      overflow: hidden;
+    }
+
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(239,43,45,0.25) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 50%, rgba(0,156,59,0.2) 0%, transparent 60%),
+        radial-gradient(ellipse at 50% 0%, rgba(0,48,135,0.4) 0%, transparent 70%),
+        var(--mørk);
+      z-index: 0;
+    }
+
+    /* Fotballmønster i bakgrunn */
+    .hero-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      z-index: 0;
+    }
+
+    .hero > * { position: relative; z-index: 1; }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(239,43,45,0.2);
+      border: 1px solid rgba(239,43,45,0.5);
+      color: #ff6b6b;
+      padding: 0.4rem 1.2rem;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 2rem;
+    }
+
+    .land-matchup {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .land {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .flagg {
+      font-size: clamp(4rem, 12vw, 7rem);
+      line-height: 1;
+      filter: drop-shadow(0 4px 24px rgba(0,0,0,0.5));
+    }
+
+    .land-navn {
+      font-size: clamp(1.1rem, 3vw, 1.5rem);
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .vs {
+      font-size: clamp(1.8rem, 5vw, 2.8rem);
+      font-weight: 900;
+      color: rgba(255,255,255,0.4);
+      padding: 0 0.5rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(1.5rem, 5vw, 2.5rem);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      line-height: 1.2;
+      margin-bottom: 0.75rem;
+    }
+
+    .hero h1 span { color: var(--norsk-rød); }
+
+    .hero-sub {
+      font-size: 1.05rem;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 2.5rem;
+      line-height: 1.7;
+    }
+
+    .info-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .info-kort {
+      background: var(--kort-bg);
+      border: 1px solid var(--kant);
+      border-radius: 14px;
+      padding: 1rem 1.5rem;
+      min-width: 140px;
+      text-align: center;
+    }
+
+    .info-ikon { font-size: 1.5rem; margin-bottom: 0.4rem; }
+    .info-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.45); margin-bottom: 0.2rem; }
+    .info-verdi { font-size: 1.05rem; font-weight: 800; }
+
+    .plass-indikator {
+      margin-bottom: 2rem;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .plass-bar-wrap {
+      background: rgba(255,255,255,0.1);
+      border-radius: 999px;
+      height: 8px;
+      margin-bottom: 0.5rem;
+      overflow: hidden;
+    }
+
+    .plass-bar {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--norsk-rød), #ff6b6b);
+      transition: width 0.6s ease;
+    }
+
+    .plass-tekst {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.55);
+      text-align: center;
+    }
+
+    .plass-tekst strong { color: #fff; }
+
+    .btn-scroll {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: var(--norsk-rød);
+      color: #fff;
+      padding: 1rem 2.5rem;
+      border-radius: 999px;
+      font-size: 1.05rem;
+      font-weight: 800;
+      text-decoration: none;
+      letter-spacing: 0.03em;
+      box-shadow: 0 4px 24px rgba(239,43,45,0.4);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-scroll:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(239,43,45,0.5);
+    }
+
+    /* SKJEMA-SEKSJON */
+    .skjema-seksjon {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 4rem 1.5rem;
+    }
+
+    .skjema-overskrift {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .skjema-overskrift h2 {
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      font-weight: 900;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .skjema-overskrift p {
+      color: rgba(255,255,255,0.55);
+      font-size: 0.95rem;
+    }
+
+    .skjema-kort {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--kant);
+      border-radius: 20px;
+      padding: 2rem;
+    }
+
+    .felt {
+      margin-bottom: 1.25rem;
+    }
+
+    .felt label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 0.5rem;
+    }
+
+    .felt input, .felt select {
+      width: 100%;
+      background: rgba(255,255,255,0.07);
+      border: 1.5px solid rgba(255,255,255,0.15);
+      color: #fff;
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+      appearance: none;
+    }
+
+    .felt input::placeholder { color: rgba(255,255,255,0.3); }
+
+    .felt input:focus, .felt select:focus {
+      border-color: var(--norsk-rød);
+    }
+
+    .felt select option { background: #1a1f33; color: #fff; }
+
+    .feil-melding {
+      background: rgba(239,43,45,0.15);
+      border: 1px solid rgba(239,43,45,0.4);
+      color: #ff8080;
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    .feil-melding.synlig { display: block; }
+
+    .send-btn {
+      width: 100%;
+      background: var(--norsk-rød);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 1rem;
+      font-size: 1.05rem;
+      font-weight: 800;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    .send-btn:hover:not(:disabled) {
+      background: #d41f21;
+      transform: translateY(-1px);
+    }
+
+    .send-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* SUKSESS */
+    .suksess-panel {
+      text-align: center;
+      padding: 2rem;
+      display: none;
+    }
+
+    .suksess-panel.synlig { display: block; }
+
+    .suksess-ikon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+    }
+
+    .suksess-panel h3 {
+      font-size: 1.5rem;
+      font-weight: 900;
+      margin-bottom: 0.75rem;
+    }
+
+    .suksess-panel p {
+      color: rgba(255,255,255,0.6);
+      line-height: 1.7;
+    }
+
+    /* STEMNING-SEKSJON */
+    .stemning {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 0 1.5rem 5rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .stemning-kort {
+      background: var(--kort-bg);
+      border: 1px solid var(--kant);
+      border-radius: 16px;
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .stemning-ikon { font-size: 2rem; margin-bottom: 0.75rem; }
+    .stemning-tittel { font-weight: 800; margin-bottom: 0.4rem; font-size: 1rem; }
+    .stemning-tekst { font-size: 0.85rem; color: rgba(255,255,255,0.55); line-height: 1.5; }
+
+    /* NORSK STRIPE */
+    .norsk-stripe {
+      width: 100%;
+      height: 6px;
+      background: linear-gradient(90deg, var(--norsk-rød) 33%, var(--norsk-hvit) 33%, var(--norsk-hvit) 42%, var(--norsk-blå) 42%, var(--norsk-blå) 58%, var(--norsk-hvit) 58%, var(--norsk-hvit) 67%, var(--norsk-rød) 67%);
+    }
+
+    .footer {
+      text-align: center;
+      padding: 2rem;
+      color: rgba(255,255,255,0.3);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--kant);
+    }
+
+    @media (max-width: 480px) {
+      .land-matchup { gap: 1rem; }
+      .vs { font-size: 1.5rem; }
+      .skjema-kort { padding: 1.5rem 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="norsk-stripe"></div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+
+  <div class="chip">⚽ VM 2026 · Søndag</div>
+
+  <div class="land-matchup">
+    <div class="land">
+      <div class="flagg">🇳🇴</div>
+      <div class="land-navn" style="color:#ff6b6b;">Norge</div>
+    </div>
+    <div class="vs">VS</div>
+    <div class="land">
+      <div class="flagg">🇧🇷</div>
+      <div class="land-navn" style="color:#66d97a;">Brasil</div>
+    </div>
+  </div>
+
+  <h1>VM-kveld på <span>Vassøy!</span></h1>
+  <p class="hero-sub">
+    Se den store kampen på storskjerm i idrettslokalet.<br>
+    Åpen kiosk, alkoholfritt og for hele familien! 🎉
+  </p>
+
+  <div class="info-grid">
+    <div class="info-kort">
+      <div class="info-ikon">🚪</div>
+      <div class="info-label">Dørene åpner</div>
+      <div class="info-verdi">21:30</div>
+    </div>
+    <div class="info-kort">
+      <div class="info-ikon">⚽</div>
+      <div class="info-label">Kampstart</div>
+      <div class="info-verdi">22:00</div>
+    </div>
+    <div class="info-kort">
+      <div class="info-ikon">📍</div>
+      <div class="info-label">Sted</div>
+      <div class="info-verdi">Idrettslokalet</div>
+    </div>
+    <div class="info-kort">
+      <div class="info-ikon">🎟️</div>
+      <div class="info-label">Inngang</div>
+      <div class="info-verdi">Gratis</div>
+    </div>
+  </div>
+
+  <div class="plass-indikator">
+    <div class="plass-bar-wrap">
+      <div class="plass-bar" id="plass-bar" style="width:0%"></div>
+    </div>
+    <div class="plass-tekst" id="plass-tekst">Laster plassinfo…</div>
+  </div>
+
+  <a href="#pamelding" class="btn-scroll">
+    🇳🇴 Meld deg på nå
+  </a>
+</section>
+
+<!-- STEMNING -->
+<section>
+  <div class="stemning">
+    <div class="stemning-kort">
+      <div class="stemning-ikon">🍿</div>
+      <div class="stemning-tittel">Kiosk</div>
+      <div class="stemning-tekst">Snacks, brus og annet godt — åpen gjennom hele kampen</div>
+    </div>
+    <div class="stemning-kort">
+      <div class="stemning-ikon">👨‍👩‍👧‍👦</div>
+      <div class="stemning-tittel">Familievennlig</div>
+      <div class="stemning-tekst">Passer for hele familien — ta med ungene!</div>
+    </div>
+    <div class="stemning-kort">
+      <div class="stemning-ikon">🚫🍺</div>
+      <div class="stemning-tittel">Alkoholfritt</div>
+      <div class="stemning-tekst">Trygt og alkoholfritt arrangement for alle aldre</div>
+    </div>
+    <div class="stemning-kort">
+      <div class="stemning-ikon">📺</div>
+      <div class="stemning-tittel">Storskjerm</div>
+      <div class="stemning-tekst">Se kampen med det beste norske heiagjeng på øya!</div>
+    </div>
+  </div>
+</section>
+
+<!-- SKJEMA -->
+<section id="pamelding" class="skjema-seksjon">
+  <div class="skjema-overskrift">
+    <h2>Sikre din plass 🎟️</h2>
+    <p>Maks 70 deltakere — meld deg på for å garantere plass</p>
+  </div>
+
+  <div class="skjema-kort">
+    <div id="skjema-innhold">
+      <div class="felt">
+        <label for="navn">Fullt navn *</label>
+        <input type="text" id="navn" placeholder="Ditt navn" maxlength="80" autocomplete="name" />
+      </div>
+
+      <div class="felt">
+        <label for="epost">E-postadresse * <span style="font-weight:400;text-transform:none;letter-spacing:0;">(billetten sendes hit)</span></label>
+        <input type="email" id="epost" placeholder="din@epost.no" autocomplete="email" />
+      </div>
+
+      <div class="felt">
+        <label for="antall">Antall billetter *</label>
+        <select id="antall">
+          <option value="">Velg antall…</option>
+          <option value="1">1 billett</option>
+          <option value="2">2 billetter</option>
+          <option value="3">3 billetter</option>
+          <option value="4">4 billetter</option>
+          <option value="5">5 billetter</option>
+          <option value="6">6 billetter</option>
+          <option value="7">7 billetter</option>
+          <option value="8">8 billetter</option>
+          <option value="9">9 billetter</option>
+          <option value="10">10 billetter</option>
+        </select>
+      </div>
+
+      <div class="feil-melding" id="feil-melding"></div>
+
+      <button class="send-btn" id="send-btn" onclick="sendPamelding()">
+        🇳🇴 Meld på!
+      </button>
+    </div>
+
+    <div class="suksess-panel" id="suksess-panel">
+      <div class="suksess-ikon">🎉</div>
+      <h3>Du er påmeldt!</h3>
+      <p>
+        Vi gleder oss til å se deg søndag.<br>
+        <strong>Dørene åpner 21:30 — kampstart 22:00.</strong><br><br>
+        Husk — gratis inngang, kiosk åpen og full VM-stemning! 🇳🇴⚽
+      </p>
+    </div>
+  </div>
+</section>
+
+<div class="norsk-stripe"></div>
+
+<footer class="footer">
+  <p>Vassøy Idrettslag · VM-kveld · Søndag</p>
+</footer>
+
+<script>
+const API = 'https://vassoy-il.replit.app/api';
+
+async function lastStatus() {
+  try {
+    const r = await fetch(API + '/vm-status');
+    const d = await r.json();
+    const pst = Math.round((d.totalt / d.maks) * 100);
+    document.getElementById('plass-bar').style.width = pst + '%';
+    if (d.ledig === 0) {
+      document.getElementById('plass-tekst').innerHTML = '<strong style="color:#ff6b6b;">Fullt! Ingen plasser igjen.</strong>';
+      document.getElementById('send-btn').disabled = true;
+      document.getElementById('send-btn').textContent = 'Fullt – ingen plasser igjen';
+    } else {
+      document.getElementById('plass-tekst').innerHTML =
+        '<strong>' + d.ledig + ' av ' + d.maks + '</strong> plasser ledig';
+    }
+  } catch {
+    document.getElementById('plass-tekst').textContent = 'Kunne ikke laste plassinfo';
+  }
+}
+
+async function sendPamelding() {
+  const navn = document.getElementById('navn').value.trim();
+  const epost = document.getElementById('epost').value.trim();
+  const antall = parseInt(document.getElementById('antall').value, 10);
+  const feilEl = document.getElementById('feil-melding');
+  const btn = document.getElementById('send-btn');
+
+  feilEl.classList.remove('synlig');
+
+  if (!navn) { feilEl.textContent = 'Vennligst skriv inn navn.'; feilEl.classList.add('synlig'); return; }
+  if (!epost || !epost.includes('@')) { feilEl.textContent = 'Vennligst skriv inn en gyldig e-postadresse.'; feilEl.classList.add('synlig'); return; }
+  if (!antall || isNaN(antall)) { feilEl.textContent = 'Vennligst velg antall billetter.'; feilEl.classList.add('synlig'); return; }
+
+  const orgTekst = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Sender…';
+
+  try {
+    const r = await fetch(API + '/vm-pamelding', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ navn, epost, antallBilletter: antall })
+    });
+    const d = await r.json();
+    if (!r.ok) {
+      feilEl.textContent = d.error || 'Noe gikk galt. Prøv igjen.';
+      feilEl.classList.add('synlig');
+      btn.disabled = false;
+      btn.textContent = orgTekst;
+      return;
+    }
+    document.getElementById('skjema-innhold').style.display = 'none';
+    document.getElementById('suksess-panel').classList.add('synlig');
+    lastStatus();
+  } catch {
+    feilEl.textContent = 'Kunne ikke koble til serveren. Prøv igjen.';
+    feilEl.classList.add('synlig');
+    btn.disabled = false;
+    btn.textContent = orgTekst;
+  }
+}
+
+lastStatus();
+</script>
+</body>
+</html>

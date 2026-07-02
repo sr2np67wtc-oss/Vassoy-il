@@ -265,6 +265,7 @@
       <button class="seksjon-btn" id="seksjon-btn-fotball" onclick="byttSeksjon('fotball')">⚽ Fotball</button>
       <button class="seksjon-btn" id="seksjon-btn-leie" onclick="byttSeksjon('leie')" style="display:none;">🏠 Leie</button>
       <button class="seksjon-btn" id="seksjon-btn-diskgolf" onclick="byttSeksjon('diskgolf')" style="display:none;">🥏 Disc Golf</button>
+      <button class="seksjon-btn" id="seksjon-btn-vm" onclick="byttSeksjon('vm')" style="display:none;">🇳🇴 VM-kveld</button>
     </div>
 
     <!-- SEKSJON: SPINNING -->
@@ -745,6 +746,18 @@
       <div id="dg-liste"><p style="color:var(--grå);">Laster...</p></div>
     </div><!-- /seksjon-diskgolf -->
 
+    <!-- SEKSJON: VM-KVELD -->
+    <div id="seksjon-vm" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;">
+        <div>
+          <h2 style="font-size:1.3rem;font-weight:800;margin-bottom:0.25rem;">🇳🇴 VM-kveld — Norge vs Brasil</h2>
+          <p style="color:var(--grå);font-size:0.9rem;">Søndag · Dørene åpner 21:30 · Kampstart 22:00</p>
+        </div>
+        <div id="vm-kapasitet-badge" style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:0.5rem 1.25rem;font-size:0.9rem;font-weight:700;color:#166534;">Laster…</div>
+      </div>
+      <div id="vm-liste"><p style="color:var(--grå);">Laster påmeldte…</p></div>
+    </div><!-- /seksjon-vm -->
+
   </div>
 </div>
 
@@ -810,6 +823,7 @@ function applyRolle(rolle, navn) {
   if (rolle === 'full') {
     document.getElementById('seksjon-btn-leie').style.display = 'inline-flex';
     document.getElementById('seksjon-btn-diskgolf').style.display = 'inline-flex';
+    document.getElementById('seksjon-btn-vm').style.display = 'inline-flex';
   } else if (rolle === 'fotball' || rolle === 'fotball-leie' || rolle === 'fotball-diskgolf') {
     document.getElementById('seksjon-btn-spinning').style.display = 'none';
     document.getElementById('seksjon-spinning').style.display = 'none';
@@ -857,7 +871,7 @@ function loggUt() {
 
 // --- SEKSJONER ---
 function byttSeksjon(seksjon) {
-  ['spinning','fotball','leie','diskgolf'].forEach(s => {
+  ['spinning','fotball','leie','diskgolf','vm'].forEach(s => {
     const el = document.getElementById('seksjon-' + s);
     const btn = document.getElementById('seksjon-btn-' + s);
     if (el) el.style.display = s === seksjon ? 'block' : 'none';
@@ -866,6 +880,7 @@ function byttSeksjon(seksjon) {
   if (seksjon === 'fotball') { renderKamper(); renderReservasjoner(); lastLigatabellAdmin(); lastNifsTeams(); }
   if (seksjon === 'leie') { lastLeieReserverte().then(renderLeieAdminPicker); renderLeieForesporsler(); renderBlokkPicker(); lastBlokkerteAdmin(); }
   if (seksjon === 'diskgolf') { renderDgListe(); }
+  if (seksjon === 'vm') { renderVmListe(); }
 }
 
 // --- FANER ---
@@ -2225,6 +2240,84 @@ async function renderDgListe() {
   }
 }
 // ===== SLUTT DISC GOLF =====
+
+// ===== VM-KVELD =====
+async function renderVmListe() {
+  const listeEl = document.getElementById('vm-liste');
+  const badge = document.getElementById('vm-kapasitet-badge');
+  if (!listeEl) return;
+  try {
+    const r = await fetch(API_BASE + '/vm-pameldinger', { headers: { 'X-Admin-Password': PASSORD } });
+    const data = await r.json();
+    const { pameldinger, totalt, maks } = data;
+    const ledig = Math.max(0, maks - totalt);
+
+    if (badge) {
+      const pst = Math.round((totalt / maks) * 100);
+      badge.textContent = totalt + ' / ' + maks + ' plasser brukt (' + ledig + ' ledig)';
+      badge.style.background = ledig === 0 ? '#fef2f2' : '#f0fdf4';
+      badge.style.borderColor = ledig === 0 ? '#fca5a5' : '#86efac';
+      badge.style.color = ledig === 0 ? '#991b1b' : '#166534';
+    }
+
+    if (!pameldinger.length) {
+      listeEl.innerHTML = '<p style="color:var(--grå);">Ingen påmeldinger ennå.</p>';
+      return;
+    }
+
+    listeEl.innerHTML = `
+      <table style="width:100%;border-collapse:collapse;font-size:0.9rem;">
+        <thead>
+          <tr style="border-bottom:2px solid var(--kant);text-align:left;">
+            <th style="padding:0.5rem 0.75rem;">#</th>
+            <th style="padding:0.5rem 0.75rem;">Navn</th>
+            <th style="padding:0.5rem 0.75rem;">E-post</th>
+            <th style="padding:0.5rem 0.75rem;text-align:center;">Billetter</th>
+            <th style="padding:0.5rem 0.75rem;color:var(--grå);">Tidspunkt</th>
+            <th style="padding:0.5rem 0.75rem;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${pameldinger.map((p, i) => `
+          <tr style="border-bottom:1px solid var(--kant);">
+            <td style="padding:0.6rem 0.75rem;color:var(--grå);">${i + 1}</td>
+            <td style="padding:0.6rem 0.75rem;font-weight:600;">${p.navn}</td>
+            <td style="padding:0.6rem 0.75rem;color:var(--grå);font-size:0.85rem;">${p.epost || '–'}</td>
+            <td style="padding:0.6rem 0.75rem;text-align:center;font-weight:800;font-size:1.05rem;">🎟️ ${p.antallBilletter}</td>
+            <td style="padding:0.6rem 0.75rem;color:var(--grå);font-size:0.82rem;">${new Date(p.createdAt).toLocaleString('nb-NO', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td>
+            <td style="padding:0.6rem 0.75rem;">
+              <button onclick="slettVmPamelding('${p.id}',this)" style="background:none;border:1px solid #fca5a5;color:#ef4444;border-radius:6px;padding:0.15rem 0.5rem;cursor:pointer;font-size:0.78rem;">Slett</button>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+        <tfoot>
+          <tr style="border-top:2px solid var(--kant);background:#f9fafb;">
+            <td colspan="3" style="padding:0.6rem 0.75rem;font-weight:800;">Totalt</td>
+            <td style="padding:0.6rem 0.75rem;text-align:center;font-weight:900;font-size:1.1rem;">🎟️ ${totalt}</td>
+            <td colspan="2"></td>
+          </tr>
+        </tfoot>
+      </table>`;
+  } catch {
+    if (listeEl) listeEl.innerHTML = '<p style="color:var(--grå);">Kunne ikke laste.</p>';
+  }
+}
+
+async function slettVmPamelding(id, btn) {
+  if (!confirm('Slette denne påmeldingen?')) return;
+  const org = btn.textContent;
+  btn.disabled = true; btn.textContent = '...';
+  try {
+    await fetch(API_BASE + '/vm-pamelding/' + id, {
+      method: 'DELETE',
+      headers: { 'X-Admin-Password': PASSORD }
+    });
+    await renderVmListe();
+  } finally {
+    btn.disabled = false; btn.textContent = org;
+  }
+}
+// ===== SLUTT VM-KVELD =====
 
 function toggleNyLeie() {
   const el = document.getElementById('ny-leie-skjema');
