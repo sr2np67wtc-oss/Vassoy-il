@@ -1,5 +1,8 @@
 // Navbar scroll-effekt
 const navbar = document.querySelector('.navbar');
+const hamburger = document.querySelector('.hamburger');
+const mobilMeny = document.querySelector('.mobil-meny');
+
 window.addEventListener('scroll', () => {
   if (window.scrollY > 20) {
     navbar.classList.add('scrolled');
@@ -9,11 +12,40 @@ window.addEventListener('scroll', () => {
 });
 
 // Hamburgermeny
-const hamburger = document.querySelector('.hamburger');
-const mobilMeny = document.querySelector('.mobil-meny');
+function lukkMeny() {
+  if (!mobilMeny) return;
+  mobilMeny.classList.remove('åpen');
+  if (hamburger) hamburger.classList.remove('aktiv');
+}
+
+function åpneMeny() {
+  if (!mobilMeny) return;
+  mobilMeny.classList.add('åpen');
+  if (hamburger) hamburger.classList.add('aktiv');
+}
+
 if (hamburger && mobilMeny) {
-  hamburger.addEventListener('click', () => {
-    mobilMeny.classList.toggle('åpen');
+  hamburger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (mobilMeny.classList.contains('åpen')) {
+      lukkMeny();
+    } else {
+      åpneMeny();
+    }
+  });
+
+  // Lukk ved klikk på lenke
+  mobilMeny.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', lukkMeny);
+  });
+
+  // Lukk ved klikk utenfor
+  document.addEventListener('click', (e) => {
+    if (mobilMeny.classList.contains('åpen') &&
+        !mobilMeny.contains(e.target) &&
+        !hamburger.contains(e.target)) {
+      lukkMeny();
+    }
   });
 }
 

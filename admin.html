@@ -207,6 +207,55 @@
       body { background: #fff; }
       .session-rad { box-shadow: none; border: 1px solid #ddd; }
     }
+
+    /* ===== ADMIN TAB-BAR (kun mobil) ===== */
+    @media (max-width: 768px) {
+      body { padding-bottom: calc(68px + env(safe-area-inset-bottom)); }
+      .seksjon-velger-bar { display: none !important; }
+      .admin-tab-bar { display: flex !important; }
+    }
+    .admin-tab-bar {
+      display: none;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: #fff;
+      border-top: 1px solid var(--kant);
+      box-shadow: 0 -2px 16px rgba(0,0,0,0.08);
+      z-index: 300;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .admin-tab-bar ul {
+      list-style: none;
+      display: flex;
+      margin: 0; padding: 0;
+      height: 60px;
+    }
+    .admin-tab-bar li { flex: 1; }
+    .admin-tab-bar button {
+      width: 100%; height: 100%;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 3px;
+      background: none; border: none;
+      cursor: pointer;
+      color: #9ca3af;
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      font-family: inherit;
+      transition: color 0.15s;
+      -webkit-tap-highlight-color: transparent;
+      padding: 0;
+    }
+    .admin-tab-bar button svg {
+      width: 22px; height: 22px;
+      stroke: currentColor; fill: none;
+      stroke-width: 1.75;
+      stroke-linecap: round; stroke-linejoin: round;
+      transition: stroke 0.15s;
+    }
+    .admin-tab-bar button.aktiv { color: var(--grønn); }
+    .admin-tab-bar button:disabled { opacity: 0.25; cursor: default; }
   </style>
 </head>
 <body>
@@ -849,6 +898,7 @@ function loggInn() {
     document.getElementById('admin-dashboard').style.display = 'block';
     feil.classList.remove('synlig');
     applyRolle(konto.rolle, konto.navn);
+    visTabBar(konto.rolle);
     if (konto.rolle === 'full') renderAlt();
     else {
       renderKamper(); renderReservasjoner(); lastLigatabellAdmin(); lastNifsTeams();
@@ -864,9 +914,30 @@ function loggInn() {
 function loggUt() {
   sessionStorage.removeItem('admin_bruker');
   document.getElementById('admin-dashboard').style.display = 'none';
+  document.getElementById('admin-tab-bar').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('bruker-input').value = '';
   document.getElementById('passord-input').value = '';
+}
+
+function visTabBar(rolle) {
+  const bar = document.getElementById('admin-tab-bar');
+  if (!bar) return;
+  bar.style.display = '';
+  // Vis/skjul tabs basert på rolle
+  const tabLeie = document.getElementById('tab-leie');
+  const tabDiskgolf = document.getElementById('tab-diskgolf');
+  const tabVm = document.getElementById('tab-vm');
+  const tabSpinning = document.getElementById('tab-spinning');
+  if (rolle === 'full') {
+    [tabLeie, tabDiskgolf, tabVm].forEach(t => { if (t) t.style.display = ''; });
+  } else if (rolle === 'fotball-leie') {
+    if (tabSpinning) tabSpinning.style.display = 'none';
+    if (tabLeie) tabLeie.style.display = '';
+  } else if (rolle === 'fotball-diskgolf') {
+    if (tabSpinning) tabSpinning.style.display = 'none';
+    if (tabDiskgolf) tabDiskgolf.style.display = '';
+  }
 }
 
 // --- SEKSJONER ---
@@ -874,9 +945,12 @@ function byttSeksjon(seksjon) {
   ['spinning','fotball','leie','diskgolf','vm'].forEach(s => {
     const el = document.getElementById('seksjon-' + s);
     const btn = document.getElementById('seksjon-btn-' + s);
+    const tab = document.getElementById('tab-' + s);
     if (el) el.style.display = s === seksjon ? 'block' : 'none';
     if (btn) btn.classList.toggle('aktiv', s === seksjon);
+    if (tab) tab.classList.toggle('aktiv', s === seksjon);
   });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
   if (seksjon === 'fotball') { renderKamper(); renderReservasjoner(); lastLigatabellAdmin(); lastNifsTeams(); }
   if (seksjon === 'leie') { lastLeieReserverte().then(renderLeieAdminPicker); renderLeieForesporsler(); renderBlokkPicker(); lastBlokkerteAdmin(); }
   if (seksjon === 'diskgolf') { renderDgListe(); }
@@ -2420,6 +2494,7 @@ window.addEventListener('DOMContentLoaded', () => {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('admin-dashboard').style.display = 'block';
         applyRolle(konto.rolle, konto.navn);
+        visTabBar(konto.rolle);
         if (konto.rolle === 'full') renderAlt();
         else {
           renderKamper(); renderReservasjoner(); lastLigatabellAdmin(); lastNifsTeams();
@@ -2436,5 +2511,41 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('ny-dato').value = d.toISOString().slice(0, 10);
 });
 </script>
+
+<!-- ADMIN TAB-BAR (mobil) -->
+<nav class="admin-tab-bar" id="admin-tab-bar" style="display:none;">
+  <ul>
+    <li>
+      <button id="tab-spinning" onclick="byttSeksjon('spinning')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 12L8 8M12 12l4-1M12 12l1 4"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/></svg>
+        Spinning
+      </button>
+    </li>
+    <li>
+      <button id="tab-fotball" onclick="byttSeksjon('fotball')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20M12 2a10 10 0 0 0 0 20M2 12h20M6.5 4.5l1.5 5 4-2 4 2 1.5-5M6.5 19.5l1.5-5 4 2 4-2 1.5 5"/></svg>
+        Fotball
+      </button>
+    </li>
+    <li>
+      <button id="tab-leie" onclick="byttSeksjon('leie')" style="display:none;">
+        <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+        Leie
+      </button>
+    </li>
+    <li>
+      <button id="tab-diskgolf" onclick="byttSeksjon('diskgolf')" style="display:none;">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="M2 12h6M16 12h6"/></svg>
+        Disc Golf
+      </button>
+    </li>
+    <li>
+      <button id="tab-vm" onclick="byttSeksjon('vm')" style="display:none;">
+        <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M8 5v14M2 12h20"/></svg>
+        VM-kveld
+      </button>
+    </li>
+  </ul>
+</nav>
 </body>
 </html>

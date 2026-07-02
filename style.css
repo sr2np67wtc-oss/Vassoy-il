@@ -115,49 +115,81 @@ img { max-width: 100%; display: block; }
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0.25rem;
+  padding: 0.35rem;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 5px;
+  border-radius: 8px;
+  transition: background 0.2s;
 }
+.hamburger:hover { background: rgba(255,255,255,0.1); }
+.navbar.scrolled .hamburger:hover { background: rgba(0,0,0,0.05); }
 .hamburger span {
   display: block;
-  width: 24px;
+  width: 22px;
   height: 2px;
   background: #fff;
-  margin: 5px 0;
-  transition: all 0.3s;
   border-radius: 2px;
+  transition: transform 0.3s ease, opacity 0.3s ease, width 0.3s ease;
+  transform-origin: center;
 }
 .navbar.scrolled .hamburger span { background: var(--svart); }
 
+/* Hamburger → X når åpen */
+.hamburger.aktiv span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger.aktiv span:nth-child(2) { opacity: 0; width: 0; }
+.hamburger.aktiv span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
 .mobil-meny {
-  display: none;
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
   background: #fff;
-  border-bottom: 1px solid var(--kant);
-  padding: 1rem 0;
+  border-bottom: 2px solid var(--kant);
+  padding: 0.75rem 0 1.25rem;
+  z-index: 99;
+  transform: translateY(-110%);
+  opacity: 0;
+  visibility: hidden;
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease, visibility 0.3s;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
 }
-.mobil-meny.åpen { display: block; }
-.mobil-meny ul { list-style: none; padding: 0 1.5rem; }
-.mobil-meny li { margin: 0.5rem 0; }
+.mobil-meny.åpen {
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+}
+.mobil-meny ul { list-style: none; padding: 0 1rem; }
+.mobil-meny li { margin: 0.2rem 0; }
 .mobil-meny a {
-  display: block;
-  padding: 0.6rem 0.75rem;
-  border-radius: 8px;
-  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  font-size: 1rem;
   font-weight: 500;
   color: var(--svart);
-  transition: background 0.2s;
+  transition: background 0.15s;
 }
 .mobil-meny a:hover,
 .mobil-meny a.aktiv { background: var(--grønn-lys); color: var(--grønn); }
 .mobil-meny .btn-mobil {
   display: block;
-  margin: 1rem 1.5rem 0.5rem;
+  margin: 0.75rem 1rem 0;
   background: var(--grønn);
   color: #fff;
   text-align: center;
-  padding: 0.75rem;
+  padding: 0.85rem;
   border-radius: 999px;
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 0.95rem;
+  transition: background 0.2s;
 }
+.mobil-meny .btn-mobil:hover { background: var(--grønn-mørk); }
 
 /* ===== FOOTER ===== */
 footer {
@@ -398,6 +430,62 @@ footer ul a:hover { color: #fff; }
 .takk-melding.synlig { display: block; }
 
 /* ===== RESPONSIV ===== */
+
+/* ===== MOBIL TAB-BAR ===== */
+.mobil-tabbar {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: #fff;
+  border-top: 1px solid var(--kant);
+  z-index: 200;
+  padding-bottom: env(safe-area-inset-bottom);
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+}
+.mobil-tabbar ul {
+  list-style: none;
+  display: flex;
+  margin: 0; padding: 0;
+}
+.mobil-tabbar li {
+  flex: 1;
+}
+.mobil-tabbar a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 0.55rem 0.25rem 0.45rem;
+  color: #9ca3af;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  transition: color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.mobil-tabbar a svg {
+  width: 22px; height: 22px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke 0.15s;
+}
+.mobil-tabbar a.aktiv,
+.mobil-tabbar a:active {
+  color: var(--grønn);
+}
+.mobil-tabbar a .tab-dot {
+  display: none;
+  width: 4px; height: 4px;
+  background: var(--grønn);
+  border-radius: 50%;
+}
+.mobil-tabbar a.aktiv .tab-dot { display: block; }
+
 
 /* Nav kollapser til hamburger ved smalere vinduer */
 @media (max-width: 1200px) {
