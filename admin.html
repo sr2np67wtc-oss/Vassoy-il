@@ -212,12 +212,14 @@
     @media (max-width: 768px) {
       body { padding-bottom: calc(68px + env(safe-area-inset-bottom)); }
       .seksjon-velger-bar { display: none !important; }
-      .admin-tab-bar { display: flex !important; }
+      .admin-tab-bar { display: block !important; }
     }
     .admin-tab-bar {
       display: none;
       position: fixed;
       bottom: 0; left: 0; right: 0;
+      width: 100%;
+      box-sizing: border-box;
       background: #fff;
       border-top: 1px solid var(--kant);
       box-shadow: 0 -2px 16px rgba(0,0,0,0.08);
@@ -227,33 +229,46 @@
     .admin-tab-bar ul {
       list-style: none;
       display: flex;
-      margin: 0; padding: 0;
+      flex-direction: row;
+      justify-content: space-around;
+      align-items: stretch;
+      margin: 0;
+      padding: 0;
       height: 60px;
       width: 100%;
+      box-sizing: border-box;
     }
-    .admin-tab-bar li { flex: 1; min-width: 0; }
+    .admin-tab-bar li {
+      flex: 1 1 0;
+      min-width: 0;
+      display: flex;
+    }
     .admin-tab-bar button {
-      width: 100%; height: 100%;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 3px;
-      background: none; border: none;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      background: none;
+      border: none;
       cursor: pointer;
       color: #9ca3af;
-      font-size: 0.6rem;
+      font-size: 0.62rem;
       font-weight: 600;
-      letter-spacing: 0.02em;
+      letter-spacing: 0.01em;
       font-family: inherit;
       transition: color 0.15s;
       -webkit-tap-highlight-color: transparent;
-      padding: 0;
+      padding: 0 2px;
+      min-width: 0;
     }
     .admin-tab-bar button svg {
       width: 22px; height: 22px;
       stroke: currentColor; fill: none;
       stroke-width: 1.75;
       stroke-linecap: round; stroke-linejoin: round;
-      transition: stroke 0.15s;
+      flex-shrink: 0;
     }
     .admin-tab-bar button.aktiv { color: var(--grønn); }
     .admin-tab-bar button:disabled { opacity: 0.25; cursor: default; }
