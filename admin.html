@@ -202,6 +202,9 @@
     .kamp-dato-boks span:first-child { font-size: 0.58rem; font-weight: 700; text-transform: uppercase; color: var(--grønn); }
     .kamp-dato-boks span:last-child { font-size: 1.25rem; font-weight: 800; color: var(--grønn); line-height: 1.1; }
 
+    body { overflow-x: hidden; }
+    * { box-sizing: border-box; }
+
     @media print {
       .admin-topbar, .fane-bar, .seksjon-velger-bar, .ingen-print { display: none; }
       body { background: #fff; }
@@ -2356,38 +2359,24 @@ async function renderVmListe() {
     }
 
     listeEl.innerHTML = `
-      <table style="width:100%;border-collapse:collapse;font-size:0.9rem;">
-        <thead>
-          <tr style="border-bottom:2px solid var(--kant);text-align:left;">
-            <th style="padding:0.5rem 0.75rem;">#</th>
-            <th style="padding:0.5rem 0.75rem;">Navn</th>
-            <th style="padding:0.5rem 0.75rem;">E-post</th>
-            <th style="padding:0.5rem 0.75rem;text-align:center;">Billetter</th>
-            <th style="padding:0.5rem 0.75rem;color:var(--grå);">Tidspunkt</th>
-            <th style="padding:0.5rem 0.75rem;"></th>
-          </tr>
-        </thead>
-        <tbody>
-          ${pameldinger.map((p, i) => `
-          <tr style="border-bottom:1px solid var(--kant);">
-            <td style="padding:0.6rem 0.75rem;color:var(--grå);">${i + 1}</td>
-            <td style="padding:0.6rem 0.75rem;font-weight:600;">${p.navn}</td>
-            <td style="padding:0.6rem 0.75rem;color:var(--grå);font-size:0.85rem;">${p.epost || '–'}</td>
-            <td style="padding:0.6rem 0.75rem;text-align:center;font-weight:800;font-size:1.05rem;">🎟️ ${p.antallBilletter}</td>
-            <td style="padding:0.6rem 0.75rem;color:var(--grå);font-size:0.82rem;">${new Date(p.createdAt).toLocaleString('nb-NO', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td>
-            <td style="padding:0.6rem 0.75rem;">
-              <button onclick="slettVmPamelding('${p.id}',this)" style="background:none;border:1px solid #fca5a5;color:#ef4444;border-radius:6px;padding:0.15rem 0.5rem;cursor:pointer;font-size:0.78rem;">Slett</button>
-            </td>
-          </tr>`).join('')}
-        </tbody>
-        <tfoot>
-          <tr style="border-top:2px solid var(--kant);background:#f9fafb;">
-            <td colspan="3" style="padding:0.6rem 0.75rem;font-weight:800;">Totalt</td>
-            <td style="padding:0.6rem 0.75rem;text-align:center;font-weight:900;font-size:1.1rem;">🎟️ ${totalt}</td>
-            <td colspan="2"></td>
-          </tr>
-        </tfoot>
-      </table>`;
+      <div style="display:flex;flex-direction:column;gap:0.6rem;">
+        ${pameldinger.map((p, i) => `
+        <div style="background:#fff;border:1px solid var(--kant);border-radius:12px;padding:0.9rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:0.75rem;">
+          <div style="min-width:0;flex:1;">
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.2rem;">
+              <span style="font-weight:700;font-size:0.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.navn}</span>
+              <span style="font-size:0.95rem;font-weight:800;flex-shrink:0;">🎟️ ${p.antallBilletter}</span>
+            </div>
+            <div style="font-size:0.78rem;color:var(--grå);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.epost || '–'}</div>
+            <div style="font-size:0.72rem;color:#9ca3af;margin-top:0.15rem;">${new Date(p.createdAt).toLocaleString('nb-NO', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
+          </div>
+          <button onclick="slettVmPamelding('${p.id}',this)" style="flex-shrink:0;background:none;border:1px solid #fca5a5;color:#ef4444;border-radius:8px;padding:0.35rem 0.7rem;cursor:pointer;font-size:0.8rem;font-weight:600;">Slett</button>
+        </div>`).join('')}
+        <div style="background:#f9fafb;border:1px solid var(--kant);border-radius:12px;padding:0.75rem 1rem;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-weight:800;">Totalt</span>
+          <span style="font-weight:900;font-size:1.1rem;">🎟️ ${totalt}</span>
+        </div>
+      </div>`;
   } catch {
     if (listeEl) listeEl.innerHTML = '<p style="color:var(--grå);">Kunne ikke laste.</p>';
   }
