@@ -653,7 +653,7 @@ async function lastInnstillinger() {
     _inn = await r.json();
     const bortelag = _inn.bortelag || 'England';
     const forkort = bortelag.substring(0, 3).toUpperCase();
-    document.getElementById('vm-chip').textContent = '⚽ VM 2026 · ' + _inn.runde + ' · ' + _inn.dag;
+    document.getElementById('vm-chip').textContent = '⚽ VM 2026 · ' + _inn.runde + ' · ' + _inn.dag + (_inn.dato ? ' ' + _inn.dato : '');
     document.getElementById('vm-banner').textContent = '🏆 Historisk! Norge i VM-' + _inn.runde.toLowerCase() + '!';
     document.getElementById('vm-eng-badge').textContent = forkort;
     document.getElementById('vm-eng-navn').textContent = bortelag;
