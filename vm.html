@@ -604,7 +604,7 @@
       <div class="feil-melding" id="feil-melding"></div>
 
       <button class="send-btn" id="send-btn" onclick="sendPamelding()">
-        🇳🇴 Meld på!
+        ⚽ Meld på!
       </button>
     </div>
 
@@ -613,7 +613,7 @@
       <h3>Du er påmeldt!</h3>
       <p id="suksess-tekst">
         Vi gleder oss til å se deg!<br>
-        Husk — gratis inngang, kiosk åpen og full VM-stemning! 🇳🇴⚽
+        Husk — gratis inngang, kiosk åpen og full VM-stemning! ⚽
       </p>
     </div>
   </div>
@@ -665,7 +665,7 @@ async function lastInnstillinger() {
     document.getElementById('suksess-tekst').innerHTML =
       'Vi gleder oss til å se deg <strong>' + _inn.dag + datoTekst + '</strong>!<br>' +
       '<strong>Dørene åpner ' + _inn.dorerApner + ' — kampstart ' + _inn.kampstart + '.</strong><br><br>' +
-      'Husk — gratis inngang, kiosk åpen og full VM-stemning! 🇳🇴⚽';
+      'Husk — gratis inngang, kiosk åpen og full VM-stemning! ⚽';
     if (!_inn.aktiv) {
       document.getElementById('send-btn').disabled = true;
       document.getElementById('send-btn').textContent = 'Påmelding ikke åpen ennå';

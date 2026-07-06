@@ -333,7 +333,7 @@
       <button class="seksjon-btn" id="seksjon-btn-fotball" onclick="byttSeksjon('fotball')">⚽ Fotball</button>
       <button class="seksjon-btn" id="seksjon-btn-leie" onclick="byttSeksjon('leie')" style="display:none;">🏠 Leie</button>
       <button class="seksjon-btn" id="seksjon-btn-diskgolf" onclick="byttSeksjon('diskgolf')" style="display:none;">🥏 Disc Golf</button>
-      <button class="seksjon-btn" id="seksjon-btn-vm" onclick="byttSeksjon('vm')" style="display:none;">🇳🇴 VM-kveld</button>
+      <button class="seksjon-btn" id="seksjon-btn-vm" onclick="byttSeksjon('vm')" style="display:none;">⚽ VM-kveld</button>
     </div>
 
     <!-- SEKSJON: SPINNING -->
@@ -818,7 +818,7 @@
     <div id="seksjon-vm" style="display:none;">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.25rem;">
         <div>
-          <h2 id="vm-admin-tittel" style="font-size:1.3rem;font-weight:800;margin-bottom:0.25rem;">🇳🇴 VM-kveld</h2>
+          <h2 id="vm-admin-tittel" style="font-size:1.3rem;font-weight:800;margin-bottom:0.25rem;">⚽ VM-kveld</h2>
           <p id="vm-admin-sub" style="color:var(--grå);font-size:0.9rem;">Laster…</p>
         </div>
         <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
@@ -2457,7 +2457,7 @@ async function lastVmInnstillinger() {
     const inn = await r.json();
     const tittelEl = document.getElementById('vm-admin-tittel');
     const subEl = document.getElementById('vm-admin-sub');
-    if (tittelEl) tittelEl.textContent = '🇳🇴 VM-kveld — Norge vs ' + inn.bortelag;
+    if (tittelEl) tittelEl.textContent = '⚽ VM-kveld — Norge vs ' + inn.bortelag;
     if (subEl) subEl.textContent = inn.runde + ' · ' + inn.dag + (inn.dato ? ' ' + inn.dato : '') + ' · Dørene åpner ' + inn.dorerApner + ' · Kampstart ' + inn.kampstart;
     document.getElementById('vm-inn-bortelag').value = inn.bortelag || '';
     document.getElementById('vm-inn-runde').value = inn.runde || '';
