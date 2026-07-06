@@ -816,13 +816,63 @@
 
     <!-- SEKSJON: VM-KVELD -->
     <div id="seksjon-vm" style="display:none;">
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.25rem;">
         <div>
-          <h2 style="font-size:1.3rem;font-weight:800;margin-bottom:0.25rem;">🇳🇴 VM-kveld — Norge vs England</h2>
-          <p style="color:var(--grå);font-size:0.9rem;">Lørdag · Dørene åpner 22:30 · Kampstart 23:00</p>
+          <h2 id="vm-admin-tittel" style="font-size:1.3rem;font-weight:800;margin-bottom:0.25rem;">🇳🇴 VM-kveld</h2>
+          <p id="vm-admin-sub" style="color:var(--grå);font-size:0.9rem;">Laster…</p>
         </div>
-        <div id="vm-kapasitet-badge" style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:0.5rem 1.25rem;font-size:0.9rem;font-weight:700;color:#166534;">Laster…</div>
+        <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+          <div id="vm-kapasitet-badge" style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:0.5rem 1.25rem;font-size:0.9rem;font-weight:700;color:#166534;">Laster…</div>
+          <button onclick="toggleVmSkjema()" style="background:var(--blå);color:#fff;border:none;border-radius:10px;padding:0.5rem 1rem;font-size:0.85rem;font-weight:700;cursor:pointer;">⚙️ Endre arrangement</button>
+        </div>
       </div>
+
+      <!-- Innstillingsskjema -->
+      <div id="vm-innstillinger-skjema" style="display:none;background:#f8fafc;border:1.5px solid var(--kant);border-radius:14px;padding:1.25rem;margin-bottom:1.5rem;">
+        <h3 style="font-size:1rem;font-weight:800;margin-bottom:1rem;">⚙️ Arrangementinnstillinger</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.75rem;">
+          <div>
+            <label style="display:block;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--grå);margin-bottom:0.3rem;">Motstander</label>
+            <input id="vm-inn-bortelag" type="text" placeholder="f.eks. England" style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid var(--kant);border-radius:8px;font-size:0.9rem;" />
+          </div>
+          <div>
+            <label style="display:block;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--grå);margin-bottom:0.3rem;">Runde</label>
+            <input id="vm-inn-runde" type="text" placeholder="f.eks. Kvartfinale" style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid var(--kant);border-radius:8px;font-size:0.9rem;" />
+          </div>
+          <div>
+            <label style="display:block;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--grå);margin-bottom:0.3rem;">Dag</label>
+            <input id="vm-inn-dag" type="text" placeholder="f.eks. Lørdag" style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid var(--kant);border-radius:8px;font-size:0.9rem;" />
+          </div>
+          <div>
+            <label style="display:block;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--grå);margin-bottom:0.3rem;">Dato (valgfri)</label>
+            <input id="vm-inn-dato" type="text" placeholder="f.eks. 5. juli" style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid var(--kant);border-radius:8px;font-size:0.9rem;" />
+          </div>
+          <div>
+            <label style="display:block;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--grå);margin-bottom:0.3rem;">Dørene åpner</label>
+            <input id="vm-inn-dorer" type="text" placeholder="f.eks. 22:30" style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid var(--kant);border-radius:8px;font-size:0.9rem;" />
+          </div>
+          <div>
+            <label style="display:block;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--grå);margin-bottom:0.3rem;">Kampstart</label>
+            <input id="vm-inn-kampstart" type="text" placeholder="f.eks. 23:00" style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid var(--kant);border-radius:8px;font-size:0.9rem;" />
+          </div>
+          <div>
+            <label style="display:block;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--grå);margin-bottom:0.3rem;">Maks plasser</label>
+            <input id="vm-inn-maks" type="number" min="1" max="500" placeholder="70" style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid var(--kant);border-radius:8px;font-size:0.9rem;" />
+          </div>
+          <div style="display:flex;flex-direction:column;justify-content:flex-end;">
+            <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.9rem;font-weight:600;">
+              <input id="vm-inn-aktiv" type="checkbox" style="width:1.1rem;height:1.1rem;" />
+              Påmelding åpen
+            </label>
+          </div>
+        </div>
+        <div style="display:flex;gap:0.5rem;margin-top:1rem;align-items:center;">
+          <button onclick="lagreVmInnstillinger()" style="background:var(--grønn);color:#fff;border:none;border-radius:10px;padding:0.6rem 1.5rem;font-size:0.9rem;font-weight:700;cursor:pointer;">💾 Lagre</button>
+          <button onclick="toggleVmSkjema()" style="background:none;border:1.5px solid var(--kant);border-radius:10px;padding:0.6rem 1rem;font-size:0.9rem;font-weight:600;cursor:pointer;color:var(--grå);">Avbryt</button>
+          <span id="vm-lagre-status" style="font-size:0.85rem;color:var(--grønn);display:none;">✅ Lagret!</span>
+        </div>
+      </div>
+
       <div id="vm-liste"><p style="color:var(--grå);">Laster påmeldte…</p></div>
     </div><!-- /seksjon-vm -->
 
@@ -973,7 +1023,7 @@ function byttSeksjon(seksjon) {
   if (seksjon === 'fotball') { renderKamper(); renderReservasjoner(); lastLigatabellAdmin(); lastNifsTeams(); }
   if (seksjon === 'leie') { lastLeieReserverte().then(renderLeieAdminPicker); renderLeieForesporsler(); renderBlokkPicker(); lastBlokkerteAdmin(); }
   if (seksjon === 'diskgolf') { renderDgListe(); }
-  if (seksjon === 'vm') { renderVmListe(); }
+  if (seksjon === 'vm') { lastVmInnstillinger(); renderVmListe(); }
 }
 
 // --- FANER ---
@@ -2396,6 +2446,59 @@ async function slettVmPamelding(id, btn) {
     btn.disabled = false; btn.textContent = org;
   }
 }
+function toggleVmSkjema() {
+  const el = document.getElementById('vm-innstillinger-skjema');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+async function lastVmInnstillinger() {
+  try {
+    const r = await fetch(API_BASE + '/vm-innstillinger');
+    const inn = await r.json();
+    const tittelEl = document.getElementById('vm-admin-tittel');
+    const subEl = document.getElementById('vm-admin-sub');
+    if (tittelEl) tittelEl.textContent = '🇳🇴 VM-kveld — Norge vs ' + inn.bortelag;
+    if (subEl) subEl.textContent = inn.runde + ' · ' + inn.dag + (inn.dato ? ' ' + inn.dato : '') + ' · Dørene åpner ' + inn.dorerApner + ' · Kampstart ' + inn.kampstart;
+    document.getElementById('vm-inn-bortelag').value = inn.bortelag || '';
+    document.getElementById('vm-inn-runde').value = inn.runde || '';
+    document.getElementById('vm-inn-dag').value = inn.dag || '';
+    document.getElementById('vm-inn-dato').value = inn.dato || '';
+    document.getElementById('vm-inn-dorer').value = inn.dorerApner || '';
+    document.getElementById('vm-inn-kampstart').value = inn.kampstart || '';
+    document.getElementById('vm-inn-maks').value = inn.maksPlasser || 70;
+    document.getElementById('vm-inn-aktiv').checked = inn.aktiv !== false;
+  } catch { /* stille */ }
+}
+
+async function lagreVmInnstillinger() {
+  const lagre = document.getElementById('vm-lagre-status');
+  const data = {
+    bortelag: document.getElementById('vm-inn-bortelag').value.trim(),
+    runde: document.getElementById('vm-inn-runde').value.trim(),
+    dag: document.getElementById('vm-inn-dag').value.trim(),
+    dato: document.getElementById('vm-inn-dato').value.trim(),
+    dorerApner: document.getElementById('vm-inn-dorer').value.trim(),
+    kampstart: document.getElementById('vm-inn-kampstart').value.trim(),
+    maksPlasser: parseInt(document.getElementById('vm-inn-maks').value, 10) || 70,
+    aktiv: document.getElementById('vm-inn-aktiv').checked,
+  };
+  try {
+    const r = await fetch(API_BASE + '/vm-innstillinger', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': PASSORD },
+      body: JSON.stringify(data),
+    });
+    if (!r.ok) throw new Error();
+    lagre.style.display = 'inline';
+    setTimeout(() => { lagre.style.display = 'none'; }, 3000);
+    await lastVmInnstillinger();
+    await renderVmListe();
+    document.getElementById('vm-innstillinger-skjema').style.display = 'none';
+  } catch {
+    alert('Kunne ikke lagre innstillinger. Prøv igjen.');
+  }
+}
+
 // ===== SLUTT VM-KVELD =====
 
 function toggleNyLeie() {

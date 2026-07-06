@@ -479,9 +479,9 @@
   <!-- Svevende stjerner (genereres via JS) -->
   <div id="stjerner"></div>
 
-  <div class="historisk-banner">🏆 Historisk! Norge i VM-kvartfinale!</div>
+  <div class="historisk-banner" id="vm-banner">🏆 Historisk! Norge i VM!</div>
 
-  <div class="chip">⚽ VM 2026 · Kvartfinale · Lørdag</div>
+  <div class="chip" id="vm-chip">⚽ VM 2026 · Laster…</div>
 
   <!-- KAMPOPPGJØR -->
   <div class="kampoppgjor">
@@ -495,14 +495,14 @@
     </div>
 
     <div class="eng-side">
-      <div class="eng-badge">ENG</div>
-      <div class="eng-navn">England</div>
+      <div class="eng-badge" id="vm-eng-badge">…</div>
+      <div class="eng-navn" id="vm-eng-navn"></div>
     </div>
   </div>
 
   <h1 class="hero-h1">VM-kveld på <span class="rød">Vassøy!</span></h1>
-  <p class="hero-sub">
-    Se kvartfinalen på storskjerm i idrettslokalet.<br>
+  <p class="hero-sub" id="vm-hero-sub">
+    Se kampen på storskjerm i idrettslokalet.<br>
     Åpen kiosk, alkoholfritt og for hele familien! 🎉
   </p>
 
@@ -510,12 +510,12 @@
     <div class="info-kort">
       <div class="info-ikon">🚪</div>
       <div class="info-label">Dørene åpner</div>
-      <div class="info-verdi">22:30</div>
+      <div class="info-verdi" id="vm-dorer">–</div>
     </div>
     <div class="info-kort">
       <div class="info-ikon">⚽</div>
       <div class="info-label">Kampstart</div>
-      <div class="info-verdi">23:00</div>
+      <div class="info-verdi" id="vm-kampstart">–</div>
     </div>
     <div class="info-kort">
       <div class="info-ikon">📍</div>
@@ -560,7 +560,7 @@
     <div class="stemning-kort">
       <div class="stemning-ikon">📺</div>
       <div class="stemning-tittel">Storskjerm</div>
-      <div class="stemning-tekst">Se kampen med det beste heiagjengen på øya!</div>
+      <div class="stemning-tekst">Se kampen med det beste norske heiagjeng på øya!</div>
     </div>
   </div>
 </section>
@@ -611,9 +611,8 @@
     <div class="suksess-panel" id="suksess-panel">
       <div class="suksess-ikon">🎉</div>
       <h3>Du er påmeldt!</h3>
-      <p>
-        Vi gleder oss til å se deg lørdag.<br>
-        <strong>Dørene åpner 22:30 — kampstart 23:00.</strong><br><br>
+      <p id="suksess-tekst">
+        Vi gleder oss til å se deg!<br>
         Husk — gratis inngang, kiosk åpen og full VM-stemning! 🇳🇴⚽
       </p>
     </div>
@@ -646,13 +645,45 @@ const API = 'https://vassoy-il.replit.app/api';
   }
 })();
 
+let _inn = null;
+
+async function lastInnstillinger() {
+  try {
+    const r = await fetch(API + '/vm-innstillinger');
+    _inn = await r.json();
+    const bortelag = _inn.bortelag || 'England';
+    const forkort = bortelag.substring(0, 3).toUpperCase();
+    document.getElementById('vm-chip').textContent = '⚽ VM 2026 · ' + _inn.runde + ' · ' + _inn.dag;
+    document.getElementById('vm-banner').textContent = '🏆 Historisk! Norge i VM-' + _inn.runde.toLowerCase() + '!';
+    document.getElementById('vm-eng-badge').textContent = forkort;
+    document.getElementById('vm-eng-navn').textContent = bortelag;
+    document.getElementById('vm-dorer').textContent = _inn.dorerApner;
+    document.getElementById('vm-kampstart').textContent = _inn.kampstart;
+    const datoTekst = _inn.dato ? ' ' + _inn.dato : '';
+    document.getElementById('vm-hero-sub').innerHTML =
+      'Se ' + _inn.runde.toLowerCase() + ' på storskjerm i idrettslokalet.<br>Åpen kiosk, alkoholfritt og for hele familien! 🎉';
+    document.getElementById('suksess-tekst').innerHTML =
+      'Vi gleder oss til å se deg <strong>' + _inn.dag + datoTekst + '</strong>!<br>' +
+      '<strong>Dørene åpner ' + _inn.dorerApner + ' — kampstart ' + _inn.kampstart + '.</strong><br><br>' +
+      'Husk — gratis inngang, kiosk åpen og full VM-stemning! 🇳🇴⚽';
+    if (!_inn.aktiv) {
+      document.getElementById('send-btn').disabled = true;
+      document.getElementById('send-btn').textContent = 'Påmelding ikke åpen ennå';
+    }
+  } catch { /* bruker standardverdier */ }
+}
+
 async function lastStatus() {
   try {
     const r = await fetch(API + '/vm-status');
     const d = await r.json();
     const pst = Math.round((d.totalt / d.maks) * 100);
     document.getElementById('plass-bar').style.width = pst + '%';
-    if (d.ledig === 0) {
+    if (!d.aktiv) {
+      document.getElementById('plass-tekst').textContent = 'Påmelding ikke åpen ennå';
+      document.getElementById('send-btn').disabled = true;
+      document.getElementById('send-btn').textContent = 'Påmelding ikke åpen ennå';
+    } else if (d.ledig === 0) {
       document.getElementById('plass-tekst').innerHTML = '<strong style="color:#ff6b6b;">Fullt! Ingen plasser igjen.</strong>';
       document.getElementById('send-btn').disabled = true;
       document.getElementById('send-btn').textContent = 'Fullt – ingen plasser igjen';
@@ -707,6 +738,7 @@ async function sendPamelding() {
   }
 }
 
+lastInnstillinger();
 lastStatus();
 </script>
 </body>
