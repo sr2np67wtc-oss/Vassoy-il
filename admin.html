@@ -493,7 +493,10 @@
 
       <!-- BANERESERVASJONER -->
       <div style="margin-top:3rem;">
-        <h2 style="font-size:1.5rem;font-weight:700;margin-bottom:1.5rem;">🏟️ Banereservasjoner (treninger m.m.)</h2>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.5rem;">
+          <h2 style="font-size:1.5rem;font-weight:700;margin:0;">🏟️ Banereservasjoner (treninger m.m.)</h2>
+          <button onclick="fjernGamleReservasjoner()" style="background:#fef2f2;color:#ef4444;border:1.5px solid #fca5a5;border-radius:10px;padding:0.45rem 1rem;font-size:0.85rem;font-weight:700;cursor:pointer;">🗑️ Fjern passerte</button>
+        </div>
 
         <!-- TABS -->
         <div style="display:flex;gap:0.5rem;margin-bottom:1.5rem;">
@@ -1506,6 +1509,21 @@ async function leggTilGjentakende() {
     visAlert('reservasjon', `${ok} opprettet, ${feil} feilet.`, 'feil');
   }
   await renderReservasjoner();
+}
+
+async function fjernGamleReservasjoner() {
+  if (!confirm('Slette alle passerte banereservasjoner fra databasen?')) return;
+  try {
+    const res = await fetch(API_BASE + '/bane-reservasjoner/gamle', {
+      method: 'DELETE',
+      headers: { 'X-Admin-Password': PASSORD }
+    });
+    const d = await res.json();
+    visAlert('reservasjon', `✅ ${d.slettet} passerte reservasjoner slettet.`, 'suksess');
+    await renderReservasjoner();
+  } catch {
+    visAlert('reservasjon', 'Kunne ikke slette passerte reservasjoner.', 'feil');
+  }
 }
 
 async function slettReservasjon(id) {
