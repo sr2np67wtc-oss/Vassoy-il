@@ -2321,3 +2321,160 @@ async function renderDgListe() {
 // ===== SLUTT DISC GOLF =====
 
 // ===== VM-KVELD =====
+
+function toggleNyLeie() {
+  const el = document.getElementById('ny-leie-skjema');
+  const aapen = el.style.display !== 'none';
+  el.style.display = aapen ? 'none' : 'block';
+  if (!aapen) {
+    _leieValgte = [];
+    _leieVisManed = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    lastLeieReserverte().then(renderLeieAdminPicker);
+  }
+}
+
+async function lagreNyLeie(btn) {
+  const navn    = document.getElementById('leie-ny-navn').value.trim();
+  const tlf     = document.getElementById('leie-ny-tlf').value.trim();
+  const epost   = document.getElementById('leie-ny-epost').value.trim();
+  const type    = document.getElementById('leie-ny-type').value;
+  const gjester = document.getElementById('leie-ny-gjester').value.trim() || '–';
+  const dato    = document.getElementById('leie-ny-dato').value.trim();
+  const melding = document.getElementById('leie-ny-melding').value.trim();
+  const feilEl  = document.getElementById('leie-ny-feil');
+
+  if (!navn || !tlf || !epost || !dato) {
+    feilEl.textContent = 'Fyll ut navn, telefon, e-post og dato.';
+    feilEl.classList.add('synlig');
+    return;
+  }
+  feilEl.classList.remove('synlig');
+
+  const orgTekst = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Lagrer...';
+  try {
+    const r = await fetch(API_BASE + '/leie-foresporsel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ navn, tlf, epost, type, gjester, dato, melding })
+    });
+    if (!r.ok) throw new Error('Serverfeil');
+    ['leie-ny-navn','leie-ny-tlf','leie-ny-epost','leie-ny-gjester','leie-ny-melding'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    _leieValgte = [];
+    _leieVisManed = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    document.getElementById('leie-ny-dato').value = '';
+    document.getElementById('ny-leie-skjema').style.display = 'none';
+    await Promise.all([renderLeieForesporsler(), lastLeieReserverte()]);
+    renderLeieAdminPicker();
+  } catch (e) {
+    feilEl.textContent = 'Feil ved lagring: ' + e.message;
+    feilEl.classList.add('synlig');
+  } finally {
+    btn.disabled = false; btn.textContent = orgTekst;
+  }
+}
+
+async function slettLeie(id, navn, btn) {
+  if (!confirm('Slett forespørselen fra ' + navn + '? Dette kan ikke angres.')) return;
+  const orgTekst = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Sletter...';
+  try {
+    const r = await fetch(API_BASE + '/leie-foresporsler/' + id, {
+      method: 'DELETE',
+      headers: { 'X-Admin-Password': PASSORD }
+    });
+    if (!r.ok) throw new Error();
+    await Promise.all([renderLeieForesporsler(), lastLeieReserverte()]);
+    renderLeieAdminPicker();
+  } catch {
+    btn.disabled = false; btn.textContent = orgTekst;
+    alert('Feil ved sletting.');
+  }
+}
+
+async function markerLeieStatus(id, status) {
+  await fetch(API_BASE + '/leie-foresporsler/' + id + '/status', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Admin-Password': PASSORD },
+    body: JSON.stringify({ status })
+  });
+  await Promise.all([renderLeieForesporsler(), lastLeieReserverte()]);
+  renderLeieAdminPicker();
+}
+
+// --- INIT ---
+async function renderAlt() {
+  await renderSessioner();
+  await oppdaterStatistikk();
+  await lastInnBanner();
+}
+
+// Auto-login fra session
+window.addEventListener('DOMContentLoaded', () => {
+  const lagret = sessionStorage.getItem('admin_bruker');
+  if (lagret) {
+    try {
+      const bruker = JSON.parse(lagret);
+      const konto = BRUKERE[bruker.id];
+      if (konto) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('admin-dashboard').style.display = 'block';
+        applyRolle(konto.rolle, konto.navn);
+        visTabBar(konto.rolle);
+        if (konto.rolle === 'full') renderAlt();
+        else {
+          renderKamper(); renderReservasjoner(); lastLigatabellAdmin(); lastNifsTeams();
+          if (konto.rolle === 'fotball-leie') { renderLeieForesporsler(); renderBlokkPicker(); lastBlokkerteAdmin(); }
+        if (konto.rolle === 'fotball-diskgolf') { renderDgListe(); }
+        }
+      }
+    } catch (_) {}
+  }
+
+  // Sett standard dato til neste tirsdag
+  const d = new Date();
+  while (d.getDay() !== 2) d.setDate(d.getDate() + 1);
+  document.getElementById('ny-dato').value = d.toISOString().slice(0, 10);
+});
+</script>
+
+<!-- ADMIN TAB-BAR (mobil) -->
+<nav class="admin-tab-bar" id="admin-tab-bar" style="display:none;">
+  <ul>
+    <li>
+      <button id="tab-spinning" onclick="byttSeksjon('spinning')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 12L8 8M12 12l4-1M12 12l1 4"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/></svg>
+        Spinning
+      </button>
+    </li>
+    <li>
+      <button id="tab-fotball" onclick="byttSeksjon('fotball')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20M12 2a10 10 0 0 0 0 20M2 12h20M6.5 4.5l1.5 5 4-2 4 2 1.5-5M6.5 19.5l1.5-5 4 2 4-2 1.5 5"/></svg>
+        Fotball
+      </button>
+    </li>
+    <li>
+      <button id="tab-leie" onclick="byttSeksjon('leie')" style="display:none;">
+        <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+        Leie
+      </button>
+    </li>
+    <li>
+      <button id="tab-diskgolf" onclick="byttSeksjon('diskgolf')" style="display:none;">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="M2 12h6M16 12h6"/></svg>
+        Disc Golf
+      </button>
+    </li>
+    <li>
+      <button id="tab-vm" onclick="byttSeksjon('vm')" style="display:none;">
+        <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M8 5v14M2 12h20"/></svg>
+        VM-kveld
+      </button>
+    </li>
+  </ul>
+</nav>
+</body>
+</html>
