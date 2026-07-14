@@ -259,7 +259,7 @@
   const el = document.getElementById('dg-leaderboard');
   if (!el) return;
   try {
-    const r = await fetch('https://vassoy-il.replit.app/api/diskgolf-rekorder');
+    const r = await fetch('https://vassoy-il.replit.app/api/diskgolf-topp10');
     const data = await r.json();
     if (!Array.isArray(data) || data.length === 0) {
       el.innerHTML = '<p style="text-align:center;color:#6b7280;font-size:0.95rem;">Ingen runder registrert ennå – vær den første!</p>';
