@@ -833,6 +833,7 @@ const PASSORD = 'Emmcri75'; // server-side API-passord
 const API_BASE = 'https://vassoy-il.replit.app/api';
 const STORAGE_SESSIONS = 'vassoy_spinning_sessions';
 const STORAGE_BOOKINGS = 'vassoy_spinning_bookings';
+let bookingsCache = [];
 
 const DAGER_NO = ['Søndag','Mandag','Tirsdag','Onsdag','Torsdag','Fredag','Lørdag'];
 const MÅNEDER_NO = ['januar','februar','mars','april','mai','juni','juli','august','september','oktober','november','desember'];
@@ -856,9 +857,14 @@ async function getSessions() {
 }
 
 function getBookings() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_BOOKINGS)) || []; } catch { return []; }
+  return bookingsCache;
 }
-function saveBookings(b) { localStorage.setItem(STORAGE_BOOKINGS, JSON.stringify(b)); }
+async function lastInnBookings() {
+  try {
+    const r = await fetch(API_BASE + '/spinning-bookings', { headers: { 'X-Admin-Password': PASSORD } });
+    bookingsCache = r.ok ? await r.json() : [];
+  } catch { bookingsCache = []; }
+}
 
 function antallBookinger(sessionId) {
   return getBookings().filter(b => b.sessionId === sessionId && b.betalt).length;
@@ -1227,15 +1233,27 @@ function renderBestillinger() {
 }
 
 // --- HANDLINGER ---
-function toggleBetalt(bookingId) {
+async function toggleBetalt(bookingId) {
   const bookings = getBookings();
   const b = bookings.find(x => x.id === bookingId);
-  if (b) { b.betalt = !b.betalt; saveBookings(bookings); renderSessioner(); oppdaterStatistikk(); }
+  if (b) {
+    await fetch(API_BASE + '/spinning-bookings/' + bookingId, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': PASSORD },
+      body: JSON.stringify({ betalt: !b.betalt })
+    });
+    await lastInnBookings();
+    renderSessioner(); renderBestillinger(); oppdaterStatistikk();
+  }
 }
 
-function slettBestilling(bookingId) {
+async function slettBestilling(bookingId) {
   if (!confirm('Slett denne bestillingen?')) return;
-  saveBookings(getBookings().filter(b => b.id !== bookingId));
+  await fetch(API_BASE + '/spinning-bookings/' + bookingId, {
+    method: 'DELETE',
+    headers: { 'X-Admin-Password': PASSORD }
+  });
+  await lastInnBookings();
   renderSessioner();
   renderBestillinger();
   oppdaterStatistikk();
@@ -2422,6 +2440,7 @@ async function markerLeieStatus(id, status) {
 
 // --- INIT ---
 async function renderAlt() {
+  await lastInnBookings();
   await renderSessioner();
   await oppdaterStatistikk();
   await lastInnBanner();
