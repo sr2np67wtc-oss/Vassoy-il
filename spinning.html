@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Book spinningtime – Vassøy IL</title>
-  <meta name="description" content="Book spinningtime hos Vassøy IL. Medlemmer 50 kr, ikke-medlemmer 100 kr." />
+  <meta name="description" content="Book spinningtime hos Vassøy IL. Tirsdager kl 09:00 og 18:30. Medlemmer 50 kr, ikke-medlemmer 100 kr." />
   <link rel="icon" type="image/png" sizes="32x32" href="bilder/logo.png">
   <link rel="apple-touch-icon" sizes="180x180" href="bilder/logo.png">
   <meta name="theme-color" content="#198553">
@@ -127,6 +127,7 @@
     <div class="hero-overlay" style="background: linear-gradient(rgba(14,17,23,0.55), rgba(25,133,83,0.4));"></div>
   </div>
   <div class="hero-innhold" style="padding-top: 5rem;">
+    <span class="chip">Tirsdager · 09:00 og 18:30</span>
     <h1 style="font-size: clamp(2.2rem, 6vw, 4rem); font-weight: 800; margin-bottom: 0.75rem;">Book spinningtime</h1>
     <p style="font-size: 1.1rem; margin-bottom: 0;">Velg en ledig time nedenfor og fyll inn dine opplysninger.</p>
   </div>
@@ -301,7 +302,7 @@ function getBookings() {
 }
 
 function antallBookinger(sessionId) {
-  return getBookings().filter(b => b.sessionId === sessionId && b.betalt).length;
+  return Number((window.__sessionsById || {})[sessionId]?.bookedCount || 0);
 }
 
 function oppdaterPris() {
@@ -382,6 +383,20 @@ async function sendBestilling() {
   const returnUrl = window.location.href.split('?')[0] + '?betalt=ok&ref=' + bookingId;
 
   try {
+    const bookingRes = await fetch(API_BASE + '/spinning-bookings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: booking.id,
+        sessionId: booking.sessionId,
+        navn: booking.navn,
+        telefon: booking.telefon,
+        erMedlem: booking.erMedlem
+      })
+    });
+    const bookingData = await bookingRes.json();
+    if (!bookingRes.ok) throw new Error(bookingData.error || 'Kunne ikke registrere bestillingen');
+
     const res = await fetch(API_BASE + '/vipps/create-payment', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -439,6 +454,7 @@ async function sjekkVippsRetur() {
 
   booking.betalt = true;
   localStorage.setItem(STORAGE_BOOKINGS, JSON.stringify(bookings));
+  await renderTimer();
 
   const bekr = document.getElementById('bekreftelse');
   bekr.classList.add('synlig');
@@ -452,7 +468,9 @@ async function renderTimer() {
   const idag = new Date();
   idag.setHours(0, 0, 0, 0);
 
-  const sessions = (await getSessions())
+  const allSessions = await getSessions();
+  window.__sessionsById = Object.fromEntries(allSessions.map(s => [s.id, s]));
+  const sessions = allSessions
     .filter(s => s.aktiv && new Date(s.dato + 'T23:59:59') >= idag)
     .sort((a, b) => (a.dato + a.tid).localeCompare(b.dato + b.tid));
 
