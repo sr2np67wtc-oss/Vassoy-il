@@ -861,6 +861,7 @@ function getBookings() {
 }
 async function lastInnBookings() {
   try {
+    await fetch(API_BASE + '/vipps/reconcile-pending', { method: 'POST' });
     const r = await fetch(API_BASE + '/spinning-bookings', { headers: { 'X-Admin-Password': PASSORD } });
     bookingsCache = r.ok ? await r.json() : [];
   } catch { bookingsCache = []; }

@@ -547,8 +547,14 @@ async function lastInnBanner() {
 }
 
 lastInnBanner();
-sjekkVippsRetur();
-renderTimer();
+async function startSpinning() {
+  try {
+    await fetch(API_BASE + '/vipps/reconcile-pending', { method: 'POST' });
+  } catch (e) {}
+  await sjekkVippsRetur();
+  await renderTimer();
+}
+startSpinning();
 </script>
 </body>
 </html>
