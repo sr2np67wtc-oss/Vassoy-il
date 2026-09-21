@@ -358,6 +358,7 @@
     <div class="fane-bar ingen-print">
       <button class="fane-btn aktiv" id="fane-timeplan" onclick="byttFane('timeplan')">Timeplan</button>
       <button class="fane-btn" id="fane-bestillinger" onclick="byttFane('bestillinger')">Bestillinger</button>
+      <button class="fane-btn" id="fane-nyhetsbrev" onclick="byttFane('nyhetsbrev')">Nyhetsbrev</button>
     </div>
 
     <!-- MELDING TIL BESØKENDE -->
@@ -435,6 +436,19 @@
         </button>
       </div>
       <div id="bestilling-liste"></div>
+    </div>
+
+    <!-- FANE: NYHETSBREV -->
+    <div id="panel-nyhetsbrev" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;">
+        <div>
+          <h2 style="font-size:1.5rem;font-weight:700;margin-bottom:0.25rem;">Nyhetsbrev for spinning</h2>
+          <p style="color:var(--grå);font-size:0.9rem;">Registrerte mottakere får e-post når nye timer publiseres.</p>
+        </div>
+        <button onclick="renderNewsletter()" class="btn btn-kantlinje" style="padding:0.5rem 1.25rem;font-size:0.9rem;">Oppdater liste</button>
+      </div>
+      <div id="newsletter-status" class="alert"></div>
+      <div id="newsletter-liste"></div>
     </div>
 
     </div><!-- /seksjon-spinning -->
@@ -971,11 +985,12 @@ function byttSeksjon(seksjon) {
 
 // --- FANER ---
 function byttFane(fane) {
-  ['timeplan','bestillinger'].forEach(f => {
+  ['timeplan','bestillinger','nyhetsbrev'].forEach(f => {
     document.getElementById('panel-' + f).style.display = f === fane ? 'block' : 'none';
     document.getElementById('fane-' + f).classList.toggle('aktiv', f === fane);
   });
   if (fane === 'bestillinger') renderBestillinger();
+  if (fane === 'nyhetsbrev') renderNewsletter();
 }
 
 // --- STATISTIKK ---
@@ -1029,13 +1044,21 @@ async function leggTilUke() {
       for (const tid of ['09:00', '18:30']) {
         if (!sessions.find(s => s.dato === datoStr && s.tid === tid)) {
           const id = 'sess-' + Date.now() + '-' + tid.replace(':', '');
-          await apiSession('POST', null, { id, dato: datoStr, tid, kapasitet: 15 });
-          lagt.push(`${formaterDato(datoStr)} kl ${tid}`);
+          await apiSession('POST', null, { id, dato: datoStr, tid, kapasitet: 15, notify: false });
+          lagt.push({ dato: datoStr, tid, instructor: null });
           await new Promise(r => setTimeout(r, 5)); // unngå duplikat-ID
         }
       }
       funnet++;
     }
+  }
+
+  if (lagt.length > 0) {
+    await fetch(API_BASE + '/spinning-newsletter/notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': PASSORD },
+      body: JSON.stringify({ sessions: lagt })
+    });
   }
 
   await renderSessioner();
@@ -1065,7 +1088,6 @@ async function slettSession(id) {
     : 'Er du sikker på at du vil slette denne timen?';
   if (!confirm(msg)) return;
   await apiSession('DELETE', id);
-  saveBookings(getBookings().filter(b => b.sessionId !== id));
   await renderSessioner();
   await oppdaterStatistikk();
 }
@@ -1231,6 +1253,113 @@ function renderBestillinger() {
 
   html += '</tbody></table></div></div>';
   container.innerHTML = html;
+}
+
+function escapeNewsletter(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+async function renderNewsletter() {
+  const container = document.getElementById('newsletter-liste');
+  if (!container) return;
+  container.innerHTML = '<p style="color:var(--grå);padding:1rem 0;">Laster mottakere…</p>';
+  try {
+    const res = await fetch(API_BASE + '/spinning-newsletter/subscribers', {
+      headers: { 'X-Admin-Password': PASSORD }
+    });
+    if (!res.ok) throw new Error('Kunne ikke hente mottakerne');
+    const subscribers = await res.json();
+    if (subscribers.length === 0) {
+      container.innerHTML = '<div style="text-align:center;padding:3rem;background:#fff;border:1.5px solid var(--kant);border-radius:16px;color:var(--grå);"><p style="font-weight:600;">Ingen er påmeldt ennå</p><p style="font-size:0.9rem;margin-top:0.4rem;">Påmeldinger fra spinningsiden vises her.</p></div>';
+      return;
+    }
+    const aktive = subscribers.filter(s => s.aktiv).length;
+    container.innerHTML = `
+      <div style="background:#fff;border:1.5px solid var(--kant);border-radius:16px;overflow:hidden;">
+        <div style="padding:1rem 1.25rem;background:var(--grønn-lys);font-weight:700;color:var(--grønn-mørk);">
+          ${aktive} aktive mottakere · ${subscribers.length} totalt
+        </div>
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+          <table style="width:100%;border-collapse:collapse;min-width:720px;font-size:0.9rem;">
+            <thead>
+              <tr style="text-align:left;border-bottom:2px solid var(--kant);">
+                <th style="padding:0.75rem;">Navn</th>
+                <th style="padding:0.75rem;">E-post</th>
+                <th style="padding:0.75rem;">Påmeldt</th>
+                <th style="padding:0.75rem;">Aktiv</th>
+                <th style="padding:0.75rem;"></th>
+              </tr>
+            </thead>
+            <tbody>
+              ${subscribers.map(s => `
+                <tr style="border-bottom:1px solid var(--kant);">
+                  <td style="padding:0.65rem 0.75rem;">
+                    <input id="newsletter-navn-${s.id}" value="${escapeNewsletter(s.navn)}" style="width:100%;min-width:140px;border:1px solid var(--kant);border-radius:7px;padding:0.45rem 0.55rem;font:inherit;">
+                  </td>
+                  <td style="padding:0.65rem 0.75rem;">
+                    <input id="newsletter-epost-${s.id}" type="email" value="${escapeNewsletter(s.epost)}" style="width:100%;min-width:220px;border:1px solid var(--kant);border-radius:7px;padding:0.45rem 0.55rem;font:inherit;">
+                  </td>
+                  <td style="padding:0.65rem 0.75rem;color:var(--grå);white-space:nowrap;">${formaterTidspunkt(s.createdAt)}</td>
+                  <td style="padding:0.65rem 0.75rem;text-align:center;">
+                    <input id="newsletter-aktiv-${s.id}" type="checkbox" ${s.aktiv ? 'checked' : ''} style="width:18px;height:18px;">
+                  </td>
+                  <td style="padding:0.65rem 0.75rem;white-space:nowrap;">
+                    <button onclick="lagreNewsletter('${s.id}',this)" class="btn btn-primær" style="padding:0.38rem 0.75rem;font-size:0.8rem;">Lagre</button>
+                    <button onclick="slettNewsletter('${s.id}','${escapeNewsletter(s.navn).replaceAll("'", "\\'")}',this)" style="margin-left:0.35rem;border:1px solid #fca5a5;background:#fff;color:#dc2626;border-radius:7px;padding:0.38rem 0.65rem;cursor:pointer;">Slett</button>
+                  </td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+  } catch (err) {
+    container.innerHTML = `<div class="alert alert-feil synlig">${escapeNewsletter(err.message)}</div>`;
+  }
+}
+
+async function lagreNewsletter(id, btn) {
+  const navn = document.getElementById('newsletter-navn-' + id).value.trim();
+  const epost = document.getElementById('newsletter-epost-' + id).value.trim();
+  const aktiv = document.getElementById('newsletter-aktiv-' + id).checked;
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Lagrer…';
+  try {
+    const res = await fetch(API_BASE + '/spinning-newsletter/subscribers/' + id, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': PASSORD },
+      body: JSON.stringify({ navn, epost, aktiv })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Kunne ikke lagre');
+    await renderNewsletter();
+  } catch (err) {
+    alert(err.message);
+    btn.disabled = false;
+    btn.textContent = original;
+  }
+}
+
+async function slettNewsletter(id, navn, btn) {
+  if (!confirm('Slett ' + navn + ' fra nyhetsbrevet?')) return;
+  btn.disabled = true;
+  btn.textContent = 'Sletter…';
+  const res = await fetch(API_BASE + '/spinning-newsletter/subscribers/' + id, {
+    method: 'DELETE',
+    headers: { 'X-Admin-Password': PASSORD }
+  });
+  if (!res.ok) {
+    alert('Kunne ikke slette mottakeren.');
+    btn.disabled = false;
+    btn.textContent = 'Slett';
+    return;
+  }
+  await renderNewsletter();
 }
 
 // --- HANDLINGER ---

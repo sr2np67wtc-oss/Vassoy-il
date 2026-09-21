@@ -81,6 +81,11 @@
     .badge-grønn { background: var(--grønn-lys); color: var(--grønn); }
     .badge-gul { background: #fef3c7; color: #92400e; }
     .badge-rød { background: #fee2e2; color: #991b1b; }
+    .newsletter-form-grid { display:grid;grid-template-columns:1fr 1.4fr auto;gap:0.75rem;align-items:end; }
+    @media (max-width: 650px) {
+      .newsletter-form-grid { grid-template-columns:1fr; }
+      .newsletter-form-grid button { width:100%; }
+    }
   </style>
 </head>
 <body>
@@ -225,6 +230,34 @@
   </div>
 </section>
 
+<!-- VARSLING OM NYE TIMER -->
+<section style="background:#fff;padding:4rem 0;">
+  <div class="container" style="max-width:800px;">
+    <div style="background:var(--grønn-lys);border:1.5px solid rgba(25,133,83,0.25);border-radius:20px;padding:clamp(1.5rem,5vw,2.5rem);display:grid;grid-template-columns:auto 1fr;gap:1.25rem;align-items:start;">
+      <div style="width:52px;height:52px;border-radius:14px;background:var(--grønn);color:#fff;display:flex;align-items:center;justify-content:center;">
+        <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="m4 7 8 6 8-6"/></svg>
+      </div>
+      <div>
+        <h2 style="font-size:1.4rem;font-weight:750;color:var(--grønn-mørk);margin-bottom:0.4rem;">Få beskjed om nye spinningtimer</h2>
+        <p style="color:var(--grå);margin-bottom:1.25rem;line-height:1.55;">Meld deg på e-postvarsling, så sender vi deg en melding når nye timer blir lagt ut.</p>
+        <div id="newsletter-form" class="newsletter-form-grid">
+          <div class="skjema-gruppe" style="margin:0;">
+            <label for="newsletter-navn">Navn</label>
+            <input type="text" id="newsletter-navn" autocomplete="name" placeholder="Ola Nordmann">
+          </div>
+          <div class="skjema-gruppe" style="margin:0;">
+            <label for="newsletter-epost">E-post</label>
+            <input type="email" id="newsletter-epost" autocomplete="email" placeholder="ola@eksempel.no">
+          </div>
+          <button id="newsletter-knapp" onclick="meldPaNewsletter()" class="btn btn-primær" style="height:46px;white-space:nowrap;">Meld meg på</button>
+        </div>
+        <div id="newsletter-melding" style="display:none;margin-top:1rem;border-radius:10px;padding:0.75rem 1rem;font-size:0.9rem;"></div>
+        <p style="font-size:0.75rem;color:var(--grå);margin-top:0.9rem;">Du kan melde deg av når som helst via lenken i e-postene.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- FOOTER -->
 <footer>
   <div class="container">
@@ -295,6 +328,40 @@ async function getSessions() {
     if (!r.ok) return [];
     return await r.json();
   } catch { return []; }
+}
+
+async function meldPaNewsletter() {
+  const navn = document.getElementById('newsletter-navn').value.trim();
+  const epost = document.getElementById('newsletter-epost').value.trim();
+  const knapp = document.getElementById('newsletter-knapp');
+  const melding = document.getElementById('newsletter-melding');
+  if (navn.length < 2 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(epost)) {
+    melding.textContent = 'Fyll inn navn og en gyldig e-postadresse.';
+    melding.style.cssText = 'display:block;margin-top:1rem;border-radius:10px;padding:0.75rem 1rem;font-size:0.9rem;background:#fee2e2;color:#991b1b;';
+    return;
+  }
+  const original = knapp.textContent;
+  knapp.disabled = true;
+  knapp.textContent = 'Melder på…';
+  try {
+    const res = await fetch(API_BASE + '/spinning-newsletter/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ navn, epost })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Kunne ikke melde deg på');
+    document.getElementById('newsletter-navn').value = '';
+    document.getElementById('newsletter-epost').value = '';
+    melding.textContent = 'Du er påmeldt! Vi sender deg e-post når nye spinningtimer legges ut.';
+    melding.style.cssText = 'display:block;margin-top:1rem;border-radius:10px;padding:0.75rem 1rem;font-size:0.9rem;background:#dcfce7;color:#166534;';
+  } catch (err) {
+    melding.textContent = err.message || 'Noe gikk galt. Prøv igjen.';
+    melding.style.cssText = 'display:block;margin-top:1rem;border-radius:10px;padding:0.75rem 1rem;font-size:0.9rem;background:#fee2e2;color:#991b1b;';
+  } finally {
+    knapp.disabled = false;
+    knapp.textContent = original;
+  }
 }
 
 function getBookings() {
