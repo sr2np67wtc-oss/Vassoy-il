@@ -1,0 +1,32 @@
+VASSØY – beboerportal (DESIGNUTKAST)
+====================================
+Statisk HTML/CSS/vanilla JS. Ingen server, database, byggesteg, CDN eller nettverkskall.
+
+OPPLASTING TIL www.vassøy-il.no/app/
+1. Pakk ut ZIP-filen lokalt.
+2. Opprett mappen «app» i webroten (samme nivå som eksisterende nettsted) via FTP/filbehandler.
+3. Last opp ALT innholdet (index.html, de øvrige .html-filene og mappen assets/) inn i app/.
+4. Åpne https://www.vassøy-il.no/app/ – index.html vises automatisk.
+Ingen .htaccess, rewrite-regler eller serveroppsett trengs. Alle lenker er relative og fungerer også
+ved å åpne index.html direkte fra disk (file://). Eksisterende booking og admin berøres ikke.
+
+SIDER
+index.html (Hjem), meny.html, batruter.html, kalender.html, spinning.html, lokaler.html,
+fotball.html, nyheter.html, innbyggerinfo.html, oytavla.html, varslinger.html, profil.html
+Felles: assets/style.css, assets/app.js. Bildekilder: assets/BILDER.txt
+
+PLASSHOLDERE / IKKE EKTE FUNKSJONALITET
+- Alle datoer, båtavganger, kamper, arrangementer, nyheter, varsler og personer er EKSEMPELDATA.
+- Båtruter: ikke live, ingen kobling til Kolumbus. Reiseplanlegger er demo.
+- Spinning-påmelding, lokaleforespørsel, Øytavla-annonse: skjema sendes ikke, ingenting reserveres.
+- Øytavla-annonser vises kun lokalt i nettleseren til siden lastes på nytt.
+- Innlogging/utlogging, «Mine bookinger», betaling: finnes ikke.
+- Tilgjengelighetskalender for lokaler: fiktiv.
+- Varslingsinnstillinger lagres kun i nettleserens localStorage. Ingen push-varsler.
+- Ingen vær-, sikkerhets- eller sanntidsinformasjon.
+Fungerer lokalt: navigasjon, faner, filtre, søk, dialoger, nedtrekkspaneler, «merk som lest».
+
+BILDERETTIGHETER
+Bildene er foreløpige referanser. Rettigheter MÅ bekreftes, eller bildene erstattes, før offentlig
+lansering. Spesielt lokale-hall.jpg og lokale-sal.jpg (eksterne kilder, lisens ikke verifisert) og
+viser ikke de faktiske lokalene. Se assets/BILDER.txt.
